@@ -6,15 +6,18 @@
 
 Flow Track is a lightweight, high-precision desktop automation utility. It empowers users to preset a sequence of click and text-pasting tasks at exact timestamps, freeing your hands from repetitive manual operations.
 
-![Software Preview](assets/v1.0_ui_preview.png)
+![Software Preview](assets/v2.0_ui_preview.png)
 
 ## ✨ Key Features
 
-- **Precise Scheduling**: Supports second-level configuration, ensuring tasks trigger exactly at the preset time.
+- **Precise Scheduling**: Uses high-fidelity 3-spinbox time inputs (HH:MM:SS) for intuitive and accurate scheduling.
 - **Smart Coordinate Picker**: Built-in coordinate detection to capture target positions instantly.
-- **Task Sequence Flow**: Add unlimited task rows to combine clicks, delays, desktop showing, and more.
-- **Local Config Persistence**: Automatically saves your last settings to the `config/` directory.
-- **Zero-Dependency Bundle**: Application icon and language files are fully embedded. Run the single EXE file anywhere without external assets.
+- **Task Sequence Flow**: Unlimited task rows with advanced "Copy Settings" logic (auto-incrementing seconds) for rapid task creation.
+- **Show Desktop Mode**: Dedicated one-click desktop toggle with smart field locking to prevent interaction conflicts.
+- **Local Config Persistence**: Automatically saves your last settings to the `config/` directory, including window position and custom timers.
+- **Visual Feedback System**: Neumorphic UI design with high-contrast active inputs and dynamic button states for clear operation visibility.
+- **Robust Field Interactions**: Intelligent focus-lock and wheel-event interception to prevent accidental data changes during list scrolling.
+- **Zero-Dependency Bundle**: Fully embedded assets with standardized `main.spec` configuration for consistent builds.
 
 ## 🚀 Quick Start
 
@@ -27,11 +30,11 @@ Flow Track is a lightweight, high-precision desktop automation utility. It empow
 1. Ensure Python 3.9+ is installed.
 2. Install dependencies:
    ```bash
-   pip install pywin32 pyperclip
+   pip install PySide6 qtawesome pywin32 pyperclip
    ```
 3. Start the application:
    ```bash
-   python flow_track.py
+   python main.py
    ```
 
 ## 🛠️ Build Instructions
@@ -39,7 +42,7 @@ Flow Track is a lightweight, high-precision desktop automation utility. It empow
 This project uses PyInstaller for single-file packaging. Run the following command to generate a standalone EXE:
 
 ```bash
-pyinstaller flow_track.spec --noconfirm
+pyinstaller main.spec --clean --noconfirm
 ```
 
 ## 📄 License

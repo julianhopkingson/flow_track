@@ -2,15 +2,15 @@
 
 
 a = Analysis(
-    ['flow_track.py'],
+    ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('assets', 'assets')],
-    hiddenimports=[],
+    datas=[('assets', 'assets'), ('ui/styles', 'ui/styles')],
+    hiddenimports=['PySide6.QtCore', 'PySide6.QtWidgets', 'PySide6.QtGui', 'qtawesome'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['pandas', 'numpy', 'PIL', 'cv2', 'pyautogui', 'pyscreeze', 'PyQt5', 'win32com'],
+    excludes=['pandas', 'numpy', 'PIL', 'cv2', 'pyautogui', 'pyscreeze', 'PyQt5', 'win32com', 'tkinter'],
     noarchive=False,
     optimize=0,
 )
