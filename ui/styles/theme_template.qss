@@ -1,0 +1,340 @@
+/* Main Window Background - "Heng Dong" Cool Gray-Blue */
+QMainWindow {
+    background: [[BG_WINDOW]];
+}
+
+/* Main Cards - "Heng Dong" Raised/Outset Look (v5.15) */
+QWidget#HeaderCard, QWidget#TimerWorkspaceCard, QWidget#LogCard {
+    background-color: [[BG_CARD]];
+    /* Simulate Raised Effect: Lighter top, Darker bottom */
+    border-top: 2px solid [[BORDER_LIGHT]];    /* Top highlight */
+    border-bottom: 2px solid [[BORDER_SHADOW]]; /* Bottom shadow */
+    border-left: 1px solid [[INPUT_BORDER]];
+    border-right: 1px solid [[INPUT_BORDER]];
+    border-radius: 20px;
+}
+
+/* Ensure Inner Workspace Containers are Transparent */
+QScrollArea#TimerScroll, QWidget#TimerContainer {
+    background-color: transparent;
+    border: none;
+}
+
+/* Timer Card Base - PURE WHITE (Matches Reference Floating Effect) */
+QFrame#TimerCard {
+    background-color: [[BG_ITEM]] !important;
+    border-radius: 12px;
+    /* Raised effect for Timer Cards */
+    border-top: 2px solid [[BORDER_LIGHT]];
+    border-bottom: 2px solid [[INPUT_BORDER]]; 
+    border-left: 1px solid [[BG_CARD]];
+    border-right: 1px solid [[BG_CARD]];
+    margin: 3px 4px; /* Halved from 6px */
+}
+
+QFrame#TimerCard[hover="true"] {
+    background-color: [[BG_ITEM]] !important;
+    border: 1px solid [[ACCENT_GREEN]];
+}
+
+/* Log & Editor Text Areas */
+QTextEdit#LogText, QTextEdit#NotesEditorField {
+    background: transparent;
+    border: none;
+    color: [[TEXT_PRIMARY]];
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    font-size: 10.5pt;
+    padding: 10px;
+}
+
+QTextEdit#LogText {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 10pt;
+}
+
+QPushButton#IconButton {
+    border: 1px solid [[INPUT_BORDER]]; 
+    border-radius: 8px; 
+    background: [[BG_ITEM]];
+    color: [[TEXT_SECONDARY]];
+}
+
+QPushButton#IconButton:hover {
+    background: [[BG_CARD]];
+    border: 1px solid [[BORDER_SHADOW]];
+    color: [[TEXT_PRIMARY]];
+}
+
+/* Fix for Editable Combo Box (Used for Centering) - Remove inner LineEdit border */
+QComboBox QLineEdit {
+    border: none;
+    background: transparent;
+    padding: 0px; /* Let parent handle padding */
+}
+
+/* Entry Fields */
+QLineEdit, QSpinBox, QComboBox {
+    background-color: [[BG_ITEM]];
+    border: 1px solid [[INPUT_BORDER]];
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: [[TEXT_PRIMARY]]; 
+    qproperty-alignment: 'AlignCenter'; /* Force text centering (v12.0) */
+}
+
+/* Specific Override for Notes Field (v14.2: Reverted to QLineEdit for layout stability) */
+QLineEdit#edit_notes {
+    qproperty-alignment: 'AlignLeft';
+    padding-left: 10px;
+}
+
+
+/* Specific Fix for Narrow SpinBoxes (v9.8) */
+QSpinBox {
+    padding: 6px 2px; /* Reduce horizontal padding to fit 2 digits */
+    qproperty-alignment: 'AlignCenter'; /* Force centering (v10.2) */
+}
+
+/* Hide Dropdown Arrow for Cleaner Look */
+QComboBox::drop-down {
+    border: none;
+    width: 0px; /* Remove the button area width */
+}
+
+QComboBox::down-arrow {
+    image: none;
+    border: none;
+}
+
+/* Dropdown Visuals - Rounded & Animated Simulation (v6.0) */
+QComboBox QAbstractItemView {
+    border: 2px solid [[INPUT_BORDER]];
+    border-radius: 12px;       /* Large rounded container */
+    background-color: [[BG_ITEM]];
+    outline: none;             /* Remove dotted focus line */
+    padding: 4px;              /* Padding for floating items */
+}
+
+/* Specific Sizes for Dropdowns (v6.1) */
+QComboBox#combo_lang QAbstractItemView {
+    min-width: 80px;
+}
+
+QComboBox#combo_copy_range QAbstractItemView {
+    min-width: 50px;
+}
+
+QComboBox QAbstractItemView::item {
+    height: 32px;              /* Taller touch target */
+    border-radius: 8px;        /* Capsule items */
+    padding-left: 10px;        /* Initial text offset */
+    margin: 2px 4px;           /* Spacing between items */
+    color: [[TEXT_SECONDARY]];            /* Default Gray */
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: #F0FFF4; /* Light Green Bg */
+    color: #2F855A;            /* Dark Green Text */
+    padding-left: 15px;        /* [Motion] Shift Right to simulate Zoom/Focus */
+    font-weight: bold;
+    font-size: 14px;           /* [Experiment] Actual Zoom */
+}
+
+QComboBox QAbstractItemView::item:selected {
+    background-color: #F0FFF4; /* Keep selected looking active */
+    color: #2F855A;
+    font-weight: bold;
+}
+
+QLineEdit:focus, QSpinBox:focus, QComboBox:hover {
+    border: 2px solid [[ACCENT_GREEN]];
+    background-color: [[BG_ITEM]];
+}
+
+/* Disabled Global Rule (Refined "Heng Dong" Style) */
+QLineEdit:disabled, QSpinBox:disabled, QComboBox:disabled {
+    background-color: [[BG_WINDOW]] !important;   /* Matches Main Background */
+    color: [[ACCENT_GRAY]] !important;             /* Muted Gray Text */
+    border: 1px solid [[INPUT_BORDER]] !important;
+}
+
+/* Buttons Base */
+QPushButton {
+    background-color: [[BG_ITEM]];
+    border-radius: 10px;
+    padding: 8px 20px;
+    color: [[TEXT_PRIMARY]];
+    font-weight: bold;
+    border: 1px solid [[INPUT_BORDER]];
+}
+
+QPushButton:hover {
+    background-color: [[BG_CARD]];
+    border: 1px solid [[BORDER_SHADOW]];
+}
+
+/* Action Button Base - Larger & Bolder (v6.2) */
+QPushButton#ActionButton {
+    min-width: 120px;  /* Double Width as requested */
+    font-size: 16px;   /* Larger Text (+2 sizes) */
+    padding: 10px;     /* Comfortable touch area */
+}
+
+/* Start/Stop Special Buttons - Custom State Colors (v5.16 Raised) */
+QPushButton#ActionButton[type="start"]:enabled {
+    background-color: #2DBE60; /* Saturated Green */
+    color: white;
+    border: none;
+    /* 3D Raised Effect */
+    border-top: 2px solid #68D391;    /* Light Green Highlight */
+    border-bottom: 2px solid #38A169; /* Even Softer Green Shadow (was #276749) */
+}
+
+QPushButton#ActionButton[type="start"]:hover:enabled {
+    background-color: #28AB56;
+}
+
+QPushButton#ActionButton[type="stop"]:enabled {
+    background-color: #ED8936; /* Warning Orange */
+    color: white;
+    border: none;
+    /* 3D Raised Effect */
+    border-top: 2px solid #FBD38D;    /* Light Orange Highlight */
+    border-bottom: 2px solid #DD6B20; /* Even Softer Orange Shadow (was #9C4221) */
+}
+
+QPushButton#ActionButton[type="stop"]:hover:enabled {
+    background-color: #F6AD55;
+}
+
+QPushButton#ActionButton:pressed {
+    background-color: #249A4F;
+    border-top: none; /* Pressing removes the raised effect */
+    border-bottom: none;
+    margin-top: 2px;
+}
+
+QPushButton#ActionButton:disabled {
+    background: #CBD5E0;
+    color: #718096;
+    border: none;
+}
+
+/* Notes Editor Styles (v16.0) */
+QDialog#NotesEditorDialog {
+    background-color: [[BG_WINDOW]]; /* Matches Main Window */
+}
+
+QFrame#NotesEditorCard {
+    background-color: [[BG_CARD]];
+    border-radius: 15px;
+    /* Elevated Raised Style */
+    border-top: 2px solid [[BORDER_LIGHT]];
+    border-bottom: 2px solid [[BORDER_SHADOW]];
+    border-left: 1px solid [[INPUT_BORDER]];
+    border-right: 1px solid [[INPUT_BORDER]];
+}
+
+QPushButton#ActionButton[type="cancel"]:enabled {
+    background-color: #CBD5E0; /* Lighter Gray */
+    color: #4A5568;            /* Darker text for contrast on light bg */
+    border: none;
+    /* 3D Raised Effect */
+    border-top: 2px solid #E2E8F0;
+    border-bottom: 2px solid #A0AEC0;
+}
+
+QPushButton#ActionButton[type="cancel"]:hover:enabled {
+    background-color: #D1DBE5;
+}
+
+/* Global QCheckBox - "Heng Dong" Unified Style (v8.3.1) */
+QCheckBox {
+    spacing: 5px; /* Space between Indicator and Text (if any) */
+    color: [[TEXT_SECONDARY]];
+}
+
+QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    background-color: [[CHECKBOX_BG]];
+    border: 1px solid [[BORDER_SHADOW]];
+    border-radius: 8px; /* Circular */
+}
+
+QCheckBox::indicator:hover {
+    border: 1px solid #38A169;
+    background-color: #F0FFF4;
+}
+
+QCheckBox::indicator:checked {
+    /* Concentric Circle Effect (v9.3) */
+    background-color: qradialgradient(
+        cx:0.5, cy:0.5, radius:0.5,
+        fx:0.5, fy:0.5,
+        stop:0.5 [[ACCENT_GREEN]], /* Aurora Green Core - Slightly larger */
+        stop:0.6 [[CHECKBOX_RING]],  /* Outer White Ring */
+        stop:0.65 [[CHECKBOX_RING]]
+    );
+    border: 1px solid [[ACCENT_GREEN]]; /* Refined Border (was 1.5px) */
+}
+
+QCheckBox::indicator:checked:hover {
+    border: 1px solid #38D191; /* Brighter for glow */
+    background-color: qradialgradient(
+        cx:0.5, cy:0.5, radius:0.5,
+        fx:0.5, fy:0.5,
+        stop:0.5 #38D191, /* Glowing Core */
+        stop:0.6 #FFFFFF,
+        stop:0.65 #FFFFFF
+    );
+}
+
+QCheckBox::indicator:disabled:checked {
+    background-color: qradialgradient(
+        cx:0.5, cy:0.5, radius:0.5,
+        fx:0.5, fy:0.5,
+        stop:0.5 [[ACCENT_GRAY]], /* "Powered Off" Gray Core */
+        stop:0.6 [[CHECKBOX_RING]],
+        stop:0.65 [[CHECKBOX_RING]]
+    );
+    border: 1px solid [[BORDER_SHADOW]];
+}
+
+/* Labels */
+QLabel#CoordinateLabel {
+    background-color: [[BG_COORD]]; 
+    padding: 0px;
+    qproperty-alignment: 'AlignCenter';
+    border-radius: 8px; /* Rounded Rectangle (v10.7) */
+    color: [[ACCENT_RED]]; /* Red Text */
+    font-family: "Consolas", "Monaco", monospace;
+    font-weight: bold;
+    font-size: 14px; /* Enlarged */
+}
+
+/* Scroll Area Visuals - "Heng Dong" Thicker Refined Green (v5.10 Rounded Rect) */
+QScrollBar:vertical {
+    border: none;
+    background-color: transparent;
+    width: 10px;
+    margin: 0px 2px 0px 2px;
+}
+
+QScrollBar::handle:vertical {
+    background: #52C41A;
+    min-height: 40px;
+    border-radius: 4px; /* Slightly squared corners (1/4 circle) */
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #73D13D;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}

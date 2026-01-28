@@ -11,6 +11,7 @@ import win32api
 from core.config_manager import ConfigManager
 from core.timer_engine import TimerEngine
 from ui.components.timer_card import TimerCard
+from ui.styles.theme_config import ThemeManager
 
 class CenterAlignmentDelegate(QStyledItemDelegate):
     """Delegate to center align text in QComboBox (v11.0)."""
@@ -33,10 +34,31 @@ class LineEditClickFilter(QObject):
             return True
         return super().eventFilter(obj, event)
 
+class ThemeButtonHoverFilter(QObject):
+    """Filter to change Sun icon color on hover (Light Mode only) (v2.3)."""
+    def __init__(self, main_window):
+        super().__init__(main_window)
+        self.mw = main_window
+
+    def eventFilter(self, obj, event):
+        if self.mw.theme_manager.current_theme == "Light":
+            if event.type() == QEvent.Enter:
+                # Hover: Gold Sun
+                icon = self.mw._draw_sun_icon(QSize(32, 32), '#F6AD55') # Gold/Orange
+                self.mw.btn_theme.setIcon(icon)
+            elif event.type() == QEvent.Leave:
+                # Normal: Green Sun
+                icon = self.mw._draw_sun_icon(QSize(32, 32), '#26D07C') # Green
+                self.mw.btn_theme.setIcon(icon)
+        return super().eventFilter(obj, event)
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.config = ConfigManager()
+        self.theme_manager = ThemeManager()
+        self.theme_manager.current_theme = self.config.theme
+
         self.engine = TimerEngine(config=self.config)
         self.timer_cards = []
 
@@ -142,7 +164,8 @@ class MainWindow(QMainWindow):
         self.lbl_coords = QLabel("(0, 0)")
         self.lbl_coords.setObjectName("CoordinateLabel")
         self.lbl_coords.setFixedHeight(31) # Align height with other header items (v10.8)
-
+        self.lbl_coords.setFixedWidth(130) # Fixed width for consistency
+        self.lbl_coords.setAlignment(Qt.AlignCenter) # Center text
         coord_group = QHBoxLayout()
         coord_group.setSpacing(5)
         coord_group.addWidget(self.lbl_coord_icon)
@@ -160,17 +183,29 @@ class MainWindow(QMainWindow):
         self.btn_stop.hide() 
         self.btn_stop.clicked.connect(self.stop_timers)
 
+        # Theme Switcher (v1.0)
+        self.btn_theme = QPushButton()
+        self.btn_theme.setFixedSize(31, 31) # Circular
+        self.btn_theme.setObjectName("IconButton")
+        self.btn_theme.clicked.connect(self.toggle_theme)
+        # Install hover filter for dynamic icon color (v2.3)
+        self.btn_theme.installEventFilter(ThemeButtonHoverFilter(self))
+        self.update_theme_icon()
+
+        # Add to Coord Group (Position requirement)
+        coord_group.addWidget(self.btn_theme)
+
         # 按组添加至主布局
         header_layout.addLayout(lang_group)
         header_layout.addWidget(self.btn_load)
         header_layout.addLayout(copy_group)
-        header_layout.addLayout(coord_group)
+        header_layout.addLayout(coord_group) # Moved to left side
         header_layout.addStretch()
         header_layout.addWidget(self.btn_start)
         header_layout.addWidget(self.btn_stop)
 
         # Initialize icons with correct colors (v9.7.2 Fix: Call after all components are defined)
-        self.update_header_icons(True)
+        self.apply_theme()
 
         main_layout.addWidget(self.header_card)
 
@@ -214,13 +249,92 @@ class MainWindow(QMainWindow):
         
         main_layout.addWidget(self.log_card)
 
-        # Apply Global Style
-        style_path = self.config.get_resource_path("ui/styles/theme.qss")
-        try:
-            with open(style_path, "r", encoding="utf-8") as f:
-                self.setStyleSheet(f.read())
-        except:
-            pass
+    def apply_theme(self):
+        """Apply the global style theme (v1.0)."""
+        template_path = self.config.get_resource_path("ui/styles/theme_template.qss")
+        qss = self.theme_manager.get_qss(template_path)
+        if qss:
+            self.setStyleSheet(qss)
+        
+        # Apply Windows Title Bar Theme (v2.0)
+        is_dark = self.theme_manager.current_theme == "Dark"
+        self.theme_manager.set_title_bar_theme(self.winId(), is_dark)
+        
+        # Update dynamic icons
+        self.update_header_icons(self.btn_start.isEnabled())
+        self.update_theme_icon()
+        for card in self.timer_cards:
+            card.update_after_theme_change()
+
+    def toggle_theme(self):
+        new_theme = "Dark" if self.theme_manager.current_theme == "Light" else "Light"
+        self.theme_manager.current_theme = new_theme
+        self.config.theme = new_theme
+        self.apply_theme()
+        self.log(f"Theme changed to {new_theme}")
+
+    def _draw_sun_icon(self, size, color):
+        """Custom painted Sun icon based on user request (v2.1)."""
+        from PySide6.QtGui import QPainter, QPen, QColor, QPixmap
+        from PySide6.QtCore import QPoint
+        
+        pixmap = QPixmap(size)
+        pixmap.fill(Qt.transparent)
+        
+        p = QPainter(pixmap)
+        p.setRenderHint(QPainter.Antialiasing)
+        
+        # Center and Radius calculation
+        w, h = size.width(), size.height()
+        center = QPoint(w // 2, h // 2) # Manual center calculation
+        r = min(w, h) / 4 # Adjust radius ratio
+        
+        c = QColor(color)
+        p.setPen(QPen(c, 1.5))
+        p.setBrush(c) # Filled style (v2.2)
+        
+        # Draw central circle
+        p.drawEllipse(center, r, r)
+        
+        # Draw rays
+        p.translate(center)
+        for _ in range(8):
+            # Ray line segment relative to center (0,0)
+            # Start just outside the circle, length 2-3px
+            p.drawLine(0, -r-2, 0, -r-5) 
+            p.rotate(45)
+            
+        p.end()
+        return QIcon(pixmap)
+
+    def update_theme_icon(self):
+        is_light = self.theme_manager.current_theme == "Light"
+        
+        if is_light:
+            # Custom Green Sun (Hollow + Rays)
+            icon = self._draw_sun_icon(QSize(32, 32), '#26D07C')
+            size = QSize(18, 18)
+            # Light Mode Hover Effect (Gold/Warm Tone)
+            self.btn_theme.setStyleSheet("""
+                QPushButton {
+                    border: 1px solid #E2E8F0;
+                    border-radius: 8px;
+                    background-color: #FFFFFF;
+                }
+                QPushButton:hover {
+                    background-color: #FFFAF0;  /* Floral White (Light Gold) */
+                    border: 1px solid #F6AD55;  /* Gold/Orange */
+                }
+            """)
+        else:
+            # Dark Mode: Blue Moon
+            icon = qta.icon('fa5s.moon', color='#A3BFFA')
+            size = QSize(18, 18)
+            # Reset style to default (Standard IconButton QSS)
+            self.btn_theme.setStyleSheet("")
+            
+        self.btn_theme.setIcon(icon)
+        self.btn_theme.setIconSize(size)
 
     def load_initial_data(self):
         timers_data = self.config.timers_data
@@ -429,9 +543,12 @@ class MainWindow(QMainWindow):
 
     def update_header_icons(self, active):
         """Update header icons (Language, Copy Range, Folder) based on app running state (v9.7.1 Plan A)."""
-        color_lang = '#26D07C' if active else '#CBD5E0'
-        color_copy = '#26D07C' if active else '#CBD5E0'
-        color_folder = '#26D07C' if active else '#CBD5E0'
+        color_active = self.theme_manager.get_color("ICON_COLOR")
+        color_muted = self.theme_manager.get_color("ICON_COLOR_MUTED")
+        
+        color_lang = color_active if active else color_muted
+        color_copy = color_active if active else color_muted
+        color_folder = color_active if active else color_muted
         
         # 1. Labels (Direct Pixmap)
         self.lbl_lang_sel.setPixmap(qta.icon('fa5s.globe', color=color_lang).pixmap(22, 22))

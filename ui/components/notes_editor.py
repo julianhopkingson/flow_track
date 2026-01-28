@@ -21,6 +21,11 @@ class NotesEditorDialog(QDialog):
         self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setObjectName("NotesEditorDialog")
         
+        # Apply Title Bar Theme (v2.0)
+        from ui.styles.theme_config import ThemeManager
+        tm = ThemeManager()
+        ThemeManager.set_title_bar_theme(self.winId(), tm.current_theme == "Dark")
+        
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(20)
