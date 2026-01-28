@@ -9,8 +9,9 @@ Flow Track is a lightweight, high-precision desktop automation utility. It empow
 ![Software Preview](assets/v2.0_ui_preview.png)
 
 - **Premium UI**: "Flow Track" Cyber-Green geek design with Glassmorphism, tailored for a fluid and high-tech user experience.
+- **Full Tooltip Support**: Every icon and input field is equipped with bilingual hover-over explanations, significantly lowering the learning curve.
 - **Precise Scheduling**: Uses high-fidelity 3-spinbox time inputs (HH:MM:SS) for intuitive and accurate scheduling.
-- **Notes Editor**: Interactive pop-up editor for rich text/multi-line notes, maintaining a clean main interface while preserving data.
+- **Text Pasting**: Supports pasting multi-line text with an independent pop-up text editor, preserving formatting and indentation.
 - **Integrated Logging**: Real-time activity logs presented in a cohesive glassmorphic card for instant feedback.
 - **Window Memory**: Automatically remembers and restores window position and size from the previous session.
 - **Bilingual Support**: Instant switching between **English** and **Chinese** with high-fidelity translations.

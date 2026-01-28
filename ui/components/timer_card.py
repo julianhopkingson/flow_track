@@ -91,9 +91,6 @@ class TimerCard(QFrame):
         self.btn_up = QPushButton(qta.icon('fa5s.arrow-up'), "")
         self.btn_down = QPushButton(qta.icon('fa5s.arrow-down'), "")
         
-        self.btn_del.setToolTip("Delete")
-        self.btn_add.setToolTip("Insert After")
-        
         for btn in [self.btn_del, self.btn_add, self.btn_up, self.btn_down]:
             btn.setFixedSize(28, 28)
             btn.setObjectName("IconButton")
@@ -231,6 +228,9 @@ class TimerCard(QFrame):
         layout.addWidget(self.edit_notes, 1)
         layout.addWidget(self.btn_notes_edit)
 
+        # Initialize Tooltips
+        self.retranslate_ui()
+
         # Connections
         self.btn_del.clicked.connect(lambda: self.delete_requested.emit(self))
         self.btn_add.clicked.connect(lambda: self.insert_requested.emit(self))
@@ -360,9 +360,41 @@ class TimerCard(QFrame):
             self.edit_interval.setText(str(data["interval"]))
 
     def retranslate_ui(self):
-        """Update tooltips without overwriting Pixmap Icons."""
-        self.lbl_desktop_icon.setToolTip(self.config.get_message("radio_show_desktop"))
-        self.edit_notes.setPlaceholderText(self.config.get_message("paste_text"))
+        """Update tooltips and placeholders for all interactive elements (v15.0)."""
+        # 1. Management Buttons
+        self.btn_del.setToolTip(self.config.get_message("tooltip_btn_delete_timer"))
+        self.btn_add.setToolTip(self.config.get_message("tooltip_btn_insert_timer"))
+        self.btn_up.setToolTip(self.config.get_message("tooltip_btn_up_timer"))
+        self.btn_down.setToolTip(self.config.get_message("tooltip_btn_down_timer"))
+        
+        # 2. Parameters (With Placeholders)
+        self.chk_enabled.setToolTip(self.config.get_message("tooltip_row_enabled"))
+        self.edit_x.setPlaceholderText(self.config.get_message("placeholder_x"))
+        self.edit_x.setToolTip(self.config.get_message("tooltip_edit_x"))
+        self.edit_y.setPlaceholderText(self.config.get_message("placeholder_y"))
+        self.edit_y.setToolTip(self.config.get_message("tooltip_edit_y"))
+        
+        # 3. Time
+        time_tip = self.config.get_message("tooltip_spin_time")
+        self.spin_h.setToolTip(time_tip)
+        self.spin_m.setToolTip(time_tip)
+        self.spin_s.setToolTip(time_tip)
+        
+        # 4. Actions
+        self.btn_copy.setToolTip(self.config.get_message("tooltip_btn_copy"))
+        self.lbl_desktop_icon.setToolTip(self.config.get_message("tooltip_show_desktop"))
+        self.chk_desktop.setToolTip(self.config.get_message("tooltip_chk_desktop"))
+        
+        # 5. Params
+        self.lbl_clicks_icon.setToolTip(self.config.get_message("tooltip_clicks_icon"))
+        self.edit_clicks.setToolTip(self.config.get_message("tooltip_clicks_icon"))
+        self.lbl_interval_icon.setToolTip(self.config.get_message("tooltip_interval_icon"))
+        self.edit_interval.setToolTip(self.config.get_message("tooltip_interval_icon"))
+        
+        # 6. Notes (With Placeholder)
+        self.edit_notes.setPlaceholderText(self.config.get_message("placeholder_notes"))
+        self.edit_notes.setToolTip(self.config.get_message("tooltip_edit_notes"))
+        self.btn_notes_edit.setToolTip(self.config.get_message("tooltip_btn_notes_edit"))
 
     def set_editing_enabled(self, enabled):
         """Enable or disable all child widgets for editing."""

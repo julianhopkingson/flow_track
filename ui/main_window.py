@@ -53,6 +53,7 @@ class MainWindow(QMainWindow):
 
         self.init_ui()
         self.load_initial_data()
+        self.change_language(self.config.selected_language)
         
         # Coordinate Polling
         self.coord_timer = QTimer(self)
@@ -109,10 +110,15 @@ class MainWindow(QMainWindow):
         # 统一使用图标：fa5s.copy
         self.lbl_copy_range_sel = QLabel()
         self.lbl_copy_range_sel.setPixmap(qta.icon('fa5s.copy', color='#26D07C').pixmap(18, 18))
-        self.lbl_copy_range_sel.setToolTip(self.config.get_message("label_copy_range"))
+        
         self.combo_copy_range = QComboBox()
         self.combo_copy_range.setFixedHeight(31) 
         self.combo_copy_range.setFixedWidth(50)
+        
+        # Move Tooltip settings here, after combo_copy_range is created
+        self.combo_lang.setToolTip(self.config.get_message("tooltip_combo_lang"))
+        self.lbl_copy_range_sel.setToolTip(self.config.get_message("tooltip_copy_range_icon"))
+        self.combo_copy_range.setToolTip(self.config.get_message("tooltip_copy_range_combo"))
         # Structural Fix for Centering
         self.combo_copy_range.setEditable(True)
         self.combo_copy_range.lineEdit().setReadOnly(True)
@@ -399,11 +405,17 @@ class MainWindow(QMainWindow):
         self.config.selected_language = lang
         self.setWindowTitle(self.config.get_message("app_title"))
         # Update all labels
-        self.btn_load.setToolTip(self.config.get_message("button_load_config"))
+        self.btn_load.setToolTip(self.config.get_message("tooltip_btn_load_config"))
         self.btn_start.setText(self.config.get_message("button_start"))
         self.btn_stop.setText(self.config.get_message("button_stop"))
-        self.lbl_lang_sel.setText(self.config.get_message("label_option_language"))
-        self.lbl_copy_range_sel.setToolTip(self.config.get_message("label_copy_range"))
+        self.lbl_lang_sel.setToolTip(self.config.get_message("tooltip_lang_sel"))
+        self.combo_lang.setToolTip(self.config.get_message("tooltip_combo_lang"))
+        self.lbl_copy_range_sel.setToolTip(self.config.get_message("tooltip_copy_range_icon"))
+        self.combo_copy_range.setToolTip(self.config.get_message("tooltip_copy_range_combo"))
+        self.lbl_coord_icon.setToolTip(self.config.get_message("tooltip_coord_icon"))
+        self.lbl_coords.setToolTip(self.config.get_message("tooltip_coords"))
+        self.btn_start.setToolTip(self.config.get_message("tooltip_btn_start"))
+        self.btn_stop.setToolTip(self.config.get_message("tooltip_btn_stop"))
         self.lbl_log_header.setText(self.config.get_message("log"))
         
         # New: Retranslate all cards
@@ -434,7 +446,7 @@ class MainWindow(QMainWindow):
         self.btn_load.setIconSize(QSize(20, 20))
 
     def load_config_dialog(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, self.config.get_message("button_load_config"), "", "INI Files (*.ini)")
+        file_path, _ = QFileDialog.getOpenFileName(self, self.config.get_message("tooltip_btn_load_config"), "", "INI Files (*.ini)")
         if file_path:
             import configparser
             temp_config = configparser.ConfigParser()
