@@ -2,8 +2,8 @@ import os
 import datetime
 from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QLabel, QComboBox, QScrollArea, 
-                             QTextEdit, QFrame, QFileDialog, QMessageBox)
-from PySide6.QtCore import Qt, QTimer
+                             QTextEdit, QFrame, QFileDialog, QMessageBox, QStyledItemDelegate)
+from PySide6.QtCore import Qt, QTimer, QSize, QObject, QEvent
 from PySide6.QtGui import QIcon, QTextCursor
 import qtawesome as qta
 import win32api
@@ -11,6 +11,27 @@ import win32api
 from core.config_manager import ConfigManager
 from core.timer_engine import TimerEngine
 from ui.components.timer_card import TimerCard
+
+class CenterAlignmentDelegate(QStyledItemDelegate):
+    """Delegate to center align text in QComboBox (v11.0)."""
+    def paint(self, painter, option, index):
+        option.displayAlignment = Qt.AlignCenter
+        super().paint(painter, option, index)
+
+class LineEditClickFilter(QObject):
+    """Filter to pass clicks from read-only line edit to combo box popup."""
+    def __init__(self, combo):
+        super().__init__(combo)
+        self.combo = combo
+        
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseButtonRelease:
+            if self.combo.view().isVisible():
+                self.combo.hidePopup()
+            else:
+                self.combo.showPopup()
+            return True
+        return super().eventFilter(obj, event)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -32,6 +53,7 @@ class MainWindow(QMainWindow):
 
         self.init_ui()
         self.load_initial_data()
+        self.change_language(self.config.selected_language)
         
         # Coordinate Polling
         self.coord_timer = QTimer(self)
@@ -46,77 +68,151 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setContentsMargins(15, 15, 15, 15)
-        main_layout.setSpacing(15)
+        main_layout.setContentsMargins(10, 10, 10, 10) # Tighter margins
+        main_layout.setSpacing(10) # Balanced spacing (was 4, originally 20)
 
-        # --- Header ---
-        header_layout = QHBoxLayout()
-        header_layout.setSpacing(10)
+        # --- Header Card ---
+        self.header_card = QFrame()
+        self.header_card.setObjectName("HeaderCard")
+        header_layout = QHBoxLayout(self.header_card)
+        header_layout.setContentsMargins(15, 10, 15, 10)
+        header_layout.setSpacing(20) # Group spacing
 
+        self.lbl_lang_sel = QLabel()
+        self.lbl_lang_sel.setPixmap(qta.icon('fa5s.globe', color='#26D07C').pixmap(22, 22))
         self.combo_lang = QComboBox()
+        self.combo_lang.setObjectName("combo_lang")
+        self.combo_lang.setFixedHeight(31)
+        self.combo_lang.setFixedWidth(90)
+        # Structural Fix for Centering: Editable + ReadOnly LineEdit
+        self.combo_lang.setEditable(True)
+        self.combo_lang.lineEdit().setReadOnly(True)
+        self.combo_lang.lineEdit().setAlignment(Qt.AlignCenter)
+        self.combo_lang.lineEdit().installEventFilter(LineEditClickFilter(self.combo_lang)) # Fix: Click to open
+        self.combo_lang.setItemDelegate(CenterAlignmentDelegate(self.combo_lang))
+        
         self.combo_lang.addItems(["中文", "English"])
         self.combo_lang.setCurrentText(self.config.selected_language)
         self.combo_lang.currentTextChanged.connect(self.change_language)
         
-        self.btn_load = QPushButton(qta.icon('fa5s.folder-open'), "")
+        # 语言组：Icon + Combo
+        lang_group = QHBoxLayout()
+        lang_group.setSpacing(5)
+        lang_group.addWidget(self.lbl_lang_sel)
+        lang_group.addWidget(self.combo_lang)
+
+        self.btn_load = QPushButton()
+        self.btn_load.setFixedHeight(32) 
+        self.btn_load.setFixedWidth(42)
         self.btn_load.setToolTip(self.config.get_message("button_load_config"))
         self.btn_load.clicked.connect(self.load_config_dialog)
-
+        
+        # 统一使用图标：fa5s.copy
+        self.lbl_copy_range_sel = QLabel()
+        self.lbl_copy_range_sel.setPixmap(qta.icon('fa5s.copy', color='#26D07C').pixmap(18, 18))
+        
         self.combo_copy_range = QComboBox()
+        self.combo_copy_range.setFixedHeight(31) 
+        self.combo_copy_range.setFixedWidth(50)
+        
+        # Move Tooltip settings here, after combo_copy_range is created
+        self.combo_lang.setToolTip(self.config.get_message("tooltip_combo_lang"))
+        self.lbl_copy_range_sel.setToolTip(self.config.get_message("tooltip_copy_range_icon"))
+        self.combo_copy_range.setToolTip(self.config.get_message("tooltip_copy_range_combo"))
+        # Structural Fix for Centering
+        self.combo_copy_range.setEditable(True)
+        self.combo_copy_range.lineEdit().setReadOnly(True)
+        self.combo_copy_range.lineEdit().setAlignment(Qt.AlignCenter)
+        self.combo_copy_range.lineEdit().installEventFilter(LineEditClickFilter(self.combo_copy_range)) # Fix: Click to open
+        self.combo_copy_range.setItemDelegate(CenterAlignmentDelegate(self.combo_copy_range))
+        
         self.combo_copy_range.addItems([str(i) for i in range(1, 11)])
         self.combo_copy_range.setCurrentText(str(self.config.copy_range))
         self.combo_copy_range.currentTextChanged.connect(self.on_copy_range_changed)
 
-        self.lbl_coords = QLabel("Coords: (0, 0)")
-        self.lbl_coords.setObjectName("CoordinateLabel") # For QSS
+        # 复制组：Icon + Combo
+        copy_group = QHBoxLayout()
+        copy_group.setSpacing(5)
+        copy_group.addWidget(self.lbl_copy_range_sel)
+        copy_group.addWidget(self.combo_copy_range)
+
+        # 坐标组：Icon + Value (Background only on value)
+        self.lbl_coord_icon = QLabel()
+        self.lbl_coord_icon.setPixmap(qta.icon('fa5s.crosshairs', color='#E53E3E').pixmap(18, 18))
+        self.lbl_coords = QLabel("(0, 0)")
+        self.lbl_coords.setObjectName("CoordinateLabel")
+        self.lbl_coords.setFixedHeight(31) # Align height with other header items (v10.8)
+
+        coord_group = QHBoxLayout()
+        coord_group.setSpacing(5)
+        coord_group.addWidget(self.lbl_coord_icon)
+        coord_group.addWidget(self.lbl_coords)
 
         self.btn_start = QPushButton(self.config.get_message("button_start"))
         self.btn_start.setObjectName("ActionButton")
+        self.btn_start.setProperty("type", "start")
         self.btn_start.clicked.connect(self.start_timers)
 
         self.btn_stop = QPushButton(self.config.get_message("button_stop"))
         self.btn_stop.setObjectName("ActionButton")
+        self.btn_stop.setProperty("type", "stop")
         self.btn_stop.setEnabled(False)
+        self.btn_stop.hide() 
         self.btn_stop.clicked.connect(self.stop_timers)
 
-        self.lbl_lang_sel = QLabel(self.config.get_message("label_option_language"))
-        header_layout.addWidget(self.lbl_lang_sel)
-        header_layout.addWidget(self.combo_lang)
+        # 按组添加至主布局
+        header_layout.addLayout(lang_group)
         header_layout.addWidget(self.btn_load)
-        self.lbl_copy_range_sel = QLabel(self.config.get_message("label_copy_range"))
-        header_layout.addWidget(self.lbl_copy_range_sel)
-        header_layout.addWidget(self.combo_copy_range)
+        header_layout.addLayout(copy_group)
+        header_layout.addLayout(coord_group)
         header_layout.addStretch()
-        header_layout.addWidget(self.lbl_coords)
         header_layout.addWidget(self.btn_start)
         header_layout.addWidget(self.btn_stop)
 
-        main_layout.addLayout(header_layout)
+        # Initialize icons with correct colors (v9.7.2 Fix: Call after all components are defined)
+        self.update_header_icons(True)
 
-        # --- Timer List Area ---
+        main_layout.addWidget(self.header_card)
+
+        # --- Timer Workspace Card ---
+        self.workspace_card = QFrame()
+        self.workspace_card.setObjectName("TimerWorkspaceCard")
+        workspace_layout = QVBoxLayout(self.workspace_card)
+        workspace_layout.setContentsMargins(10, 10, 10, 10)
+
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setObjectName("TimerScroll")
         
         self.timer_container = QWidget()
+        self.timer_container.setObjectName("TimerContainer")
         self.timer_list_layout = QVBoxLayout(self.timer_container)
         self.timer_list_layout.setAlignment(Qt.AlignTop)
-        self.timer_list_layout.setSpacing(5)
+        self.timer_list_layout.setSpacing(2)
         
         scroll.setWidget(self.timer_container)
-        main_layout.addWidget(scroll, 1)
+        workspace_layout.addWidget(scroll)
+        
+        main_layout.addWidget(self.workspace_card, 1)
 
-        # --- Log Panel ---
-        log_layout = QVBoxLayout()
+        # --- Log Card ---
+        self.log_card = QFrame()
+        self.log_card.setObjectName("LogCard")
+        log_inner_layout = QVBoxLayout(self.log_card)
+        log_inner_layout.setContentsMargins(15, 10, 15, 10)
+        log_inner_layout.setSpacing(5)
+
         self.lbl_log_header = QLabel(self.config.get_message("log"))
-        log_layout.addWidget(self.lbl_log_header)
+        self.lbl_log_header.setStyleSheet("font-weight: bold; color: #4A5568; font-size: 10pt;")
+        log_inner_layout.addWidget(self.lbl_log_header)
+
         self.txt_log = QTextEdit()
         self.txt_log.setReadOnly(True)
         self.txt_log.setFixedHeight(120)
-        self.txt_log.setStyleSheet("background: #FFFFFF; border-radius: 8px; border: 1px solid #E2E8F0; padding: 5px;")
-        log_layout.addWidget(self.txt_log)
+        self.txt_log.setObjectName("LogText")
+        log_inner_layout.addWidget(self.txt_log)
         
-        main_layout.addLayout(log_layout)
+        main_layout.addWidget(self.log_card)
 
         # Apply Global Style
         style_path = self.config.get_resource_path("ui/styles/theme.qss")
@@ -209,7 +305,7 @@ class MainWindow(QMainWindow):
     def update_coords(self):
         try:
             pos = win32api.GetCursorPos()
-            self.lbl_coords.setText(f"{self.config.get_message('label_coordinate')} {pos}")
+            self.lbl_coords.setText(f"{pos}") # Value only
         except:
             pass
 
@@ -219,6 +315,8 @@ class MainWindow(QMainWindow):
         self.txt_log.moveCursor(QTextCursor.End)
 
     def start_timers(self):
+        # v9.6: Update header icons color
+        self.update_header_icons(False)
         # 1. Lock UI first to prevent double clicks (High priority in legacy parity)
         self.set_ui_locked(True)
         
@@ -273,6 +371,8 @@ class MainWindow(QMainWindow):
         self.engine.start_tasks(tasks_info)
 
     def stop_timers(self):
+        # v9.6: Update header icons color
+        self.update_header_icons(True)
         self.engine.stop_all()
         self.set_ui_locked(False)
         self.log(self.config.get_message("log_stop_all_timer"))
@@ -291,7 +391,10 @@ class MainWindow(QMainWindow):
 
     def set_ui_locked(self, locked):
         self.btn_start.setEnabled(not locked)
+        self.btn_start.setVisible(not locked)
         self.btn_stop.setEnabled(locked)
+        self.btn_stop.setVisible(locked)
+        
         self.btn_load.setEnabled(not locked)
         self.combo_lang.setEnabled(not locked)
         self.combo_copy_range.setEnabled(not locked)
@@ -302,11 +405,17 @@ class MainWindow(QMainWindow):
         self.config.selected_language = lang
         self.setWindowTitle(self.config.get_message("app_title"))
         # Update all labels
-        self.btn_load.setToolTip(self.config.get_message("button_load_config"))
+        self.btn_load.setToolTip(self.config.get_message("tooltip_btn_load_config"))
         self.btn_start.setText(self.config.get_message("button_start"))
         self.btn_stop.setText(self.config.get_message("button_stop"))
-        self.lbl_lang_sel.setText(self.config.get_message("label_option_language"))
-        self.lbl_copy_range_sel.setText(self.config.get_message("label_copy_range"))
+        self.lbl_lang_sel.setToolTip(self.config.get_message("tooltip_lang_sel"))
+        self.combo_lang.setToolTip(self.config.get_message("tooltip_combo_lang"))
+        self.lbl_copy_range_sel.setToolTip(self.config.get_message("tooltip_copy_range_icon"))
+        self.combo_copy_range.setToolTip(self.config.get_message("tooltip_copy_range_combo"))
+        self.lbl_coord_icon.setToolTip(self.config.get_message("tooltip_coord_icon"))
+        self.lbl_coords.setToolTip(self.config.get_message("tooltip_coords"))
+        self.btn_start.setToolTip(self.config.get_message("tooltip_btn_start"))
+        self.btn_stop.setToolTip(self.config.get_message("tooltip_btn_stop"))
         self.lbl_log_header.setText(self.config.get_message("log"))
         
         # New: Retranslate all cards
@@ -318,17 +427,40 @@ class MainWindow(QMainWindow):
     def on_copy_range_changed(self, val):
         self.config.copy_range = int(val)
 
+    def update_header_icons(self, active):
+        """Update header icons (Language, Copy Range, Folder) based on app running state (v9.7.1 Plan A)."""
+        color_lang = '#26D07C' if active else '#CBD5E0'
+        color_copy = '#26D07C' if active else '#CBD5E0'
+        color_folder = '#26D07C' if active else '#CBD5E0'
+        
+        # 1. Labels (Direct Pixmap)
+        self.lbl_lang_sel.setPixmap(qta.icon('fa5s.globe', color=color_lang).pixmap(22, 22))
+        self.lbl_copy_range_sel.setPixmap(qta.icon('fa5s.copy', color=color_copy).pixmap(18, 18))
+        
+        # 2. Folder Button (Plan A: Force Disable Stage transparency override)
+        pix = qta.icon('fa5s.folder-open', color=color_folder).pixmap(20, 20)
+        icon = QIcon()
+        icon.addPixmap(pix, QIcon.Normal)
+        icon.addPixmap(pix, QIcon.Disabled)
+        self.btn_load.setIcon(icon)
+        self.btn_load.setIconSize(QSize(20, 20))
+
     def load_config_dialog(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, self.config.get_message("button_load_config"), "", "INI Files (*.ini)")
+        file_path, _ = QFileDialog.getOpenFileName(self, self.config.get_message("tooltip_btn_load_config"), "", "INI Files (*.ini)")
         if file_path:
             import configparser
             temp_config = configparser.ConfigParser()
             try:
                 temp_config.read(file_path, encoding="utf-8")
                 self.config.app_config = temp_config
-                self.config.load_app_config()
-                # Clear and Reload
-                for card in self.timer_cards: card.deleteLater()
+                self.config.load_app_config(read_default_file=False)
+                # Clear and Reload (Explicit Layout Clearing to fix refresh bug)
+                while self.timer_list_layout.count():
+                    item = self.timer_list_layout.takeAt(0)
+                    widget = item.widget()
+                    if widget:
+                        widget.deleteLater()
+                
                 self.timer_cards = []
                 self.load_initial_data()
                 self.log(self.config.get_message("log_config_loaded", filename=os.path.basename(file_path)))

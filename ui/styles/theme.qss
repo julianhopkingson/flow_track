@@ -1,43 +1,217 @@
-/* Main Window */
+/* Main Window Background - "Heng Dong" Cool Gray-Blue */
 QMainWindow {
-    background-color: #F0F2F5;
+    background: #EDF2F7;
 }
 
-/* Base Widget with Neumorphic shadow */
-QWidget#NeumorphicCard {
-    background-color: #F0F2F5;
-    border-radius: 15px;
+/* Main Cards - "Heng Dong" Raised/Outset Look (v5.15) */
+QWidget#HeaderCard, QWidget#TimerWorkspaceCard, QWidget#LogCard {
+    background-color: #F8FAFC;
+    /* Simulate Raised Effect: Lighter top, Darker bottom */
+    border-top: 2px solid #FFFFFF;    /* Top highlight */
+    border-bottom: 2px solid #CBD5E0; /* Bottom shadow */
+    border-left: 1px solid #E2E8F0;
+    border-right: 1px solid #E2E8F0;
+    border-radius: 20px;
 }
 
-/* Entry Fields & SpinBoxes */
-QLineEdit, QSpinBox {
-    background-color: #FFFFFF; /* High contrast for active state */
+/* Ensure Inner Workspace Containers are Transparent */
+QScrollArea#TimerScroll, QWidget#TimerContainer {
+    background-color: transparent;
+    border: none;
+}
+
+/* Timer Card Base - PURE WHITE (Matches Reference Floating Effect) */
+QFrame#TimerCard {
+    background-color: #FFFFFF !important;
+    border-radius: 12px;
+    /* Raised effect for Timer Cards */
+    border-top: 2px solid #FFFFFF;
+    border-bottom: 2px solid #E2E8F0; 
+    border-left: 1px solid #F7FAFC;
+    border-right: 1px solid #F7FAFC;
+    margin: 3px 4px; /* Halved from 6px */
+}
+
+QFrame#TimerCard[hover="true"] {
+    background-color: #FFFFFF !important;
+    border: 1px solid #2DBE60;
+}
+
+/* Log & Editor Text Areas */
+QTextEdit#LogText, QTextEdit#NotesEditorField {
+    background: transparent;
+    border: none;
+    color: #1A202C;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    font-size: 10.5pt;
+    padding: 10px;
+}
+
+QTextEdit#LogText {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 10pt;
+}
+
+QPushButton#IconButton {
+    border: 1px solid #E2E8F0; 
+    border-radius: 8px; 
+    background: #FFFFFF;
+    color: #4A5568;
+}
+
+QPushButton#IconButton:hover {
+    background: #F7FAFC;
+    border: 1px solid #CBD5E0;
+    color: #1A202C;
+}
+
+/* Fix for Editable Combo Box (Used for Centering) - Remove inner LineEdit border */
+QComboBox QLineEdit {
+    border: none;
+    background: transparent;
+    padding: 0px; /* Let parent handle padding */
+}
+
+/* Entry Fields */
+QLineEdit, QSpinBox, QComboBox {
+    background-color: #FFFFFF;
     border: 1px solid #E2E8F0;
     border-radius: 8px;
-    padding: 3px;
-    color: #4A5568;
-    selection-background-color: #3B82F6;
+    padding: 6px 10px;
+    color: #1A202C; 
+    qproperty-alignment: 'AlignCenter'; /* Force text centering (v12.0) */
 }
 
-QLineEdit:disabled, QSpinBox:disabled {
-    background-color: #E2E8F0; /* Subtle grey for inactive state */
-    color: #94A3B8;
+/* Specific Override for Notes Field (v14.2: Reverted to QLineEdit for layout stability) */
+QLineEdit#edit_notes {
+    qproperty-alignment: 'AlignLeft';
+    padding-left: 10px;
 }
 
-/* Buttons */
-QPushButton {
-    background-color: #F0F2F5;
-    border-radius: 12px;
-    padding: 8px 15px;
-    color: #4A5568;
+
+/* Specific Fix for Narrow SpinBoxes (v9.8) */
+QSpinBox {
+    padding: 6px 2px; /* Reduce horizontal padding to fit 2 digits */
+    qproperty-alignment: 'AlignCenter'; /* Force centering (v10.2) */
+}
+
+/* Hide Dropdown Arrow for Cleaner Look */
+QComboBox::drop-down {
+    border: none;
+    width: 0px; /* Remove the button area width */
+}
+
+QComboBox::down-arrow {
+    image: none;
+    border: none;
+}
+
+/* Dropdown Visuals - Rounded & Animated Simulation (v6.0) */
+QComboBox QAbstractItemView {
+    border: 2px solid #E2E8F0;
+    border-radius: 12px;       /* Large rounded container */
+    background-color: #FFFFFF;
+    outline: none;             /* Remove dotted focus line */
+    padding: 4px;              /* Padding for floating items */
+}
+
+/* Specific Sizes for Dropdowns (v6.1) */
+QComboBox#combo_lang QAbstractItemView {
+    min-width: 80px;
+}
+
+QComboBox#combo_copy_range QAbstractItemView {
+    min-width: 50px;
+}
+
+QComboBox QAbstractItemView::item {
+    height: 32px;              /* Taller touch target */
+    border-radius: 8px;        /* Capsule items */
+    padding-left: 10px;        /* Initial text offset */
+    margin: 2px 4px;           /* Spacing between items */
+    color: #4A5568;            /* Default Gray */
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: #F0FFF4; /* Light Green Bg */
+    color: #2F855A;            /* Dark Green Text */
+    padding-left: 15px;        /* [Motion] Shift Right to simulate Zoom/Focus */
+    font-weight: bold;
+    font-size: 14px;           /* [Experiment] Actual Zoom */
+}
+
+QComboBox QAbstractItemView::item:selected {
+    background-color: #F0FFF4; /* Keep selected looking active */
+    color: #2F855A;
     font-weight: bold;
 }
 
-/* Gradient Action Buttons (Referencing the blue-purple style) */
-QPushButton#ActionButton:enabled {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #3B82F6, stop:1 #8B5CF6);
+QLineEdit:focus, QSpinBox:focus, QComboBox:hover {
+    border: 2px solid #2DBE60;
+    background-color: #FFFFFF;
+}
+
+/* Disabled Global Rule (Refined "Heng Dong" Style) */
+QLineEdit:disabled, QSpinBox:disabled, QComboBox:disabled {
+    background-color: #EDF2F7 !important;   /* Matches Main Background */
+    color: #A0AEC0 !important;             /* Muted Gray Text */
+    border: 1px solid #E2E8F0 !important;
+}
+
+/* Buttons Base */
+QPushButton {
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    padding: 8px 20px;
+    color: #2D3748;
+    font-weight: bold;
+    border: 1px solid #E2E8F0;
+}
+
+QPushButton:hover {
+    background-color: #F1F5F9;
+    border: 1px solid #CBD5E0;
+}
+
+/* Action Button Base - Larger & Bolder (v6.2) */
+QPushButton#ActionButton {
+    min-width: 120px;  /* Double Width as requested */
+    font-size: 16px;   /* Larger Text (+2 sizes) */
+    padding: 10px;     /* Comfortable touch area */
+}
+
+/* Start/Stop Special Buttons - Custom State Colors (v5.16 Raised) */
+QPushButton#ActionButton[type="start"]:enabled {
+    background-color: #2DBE60; /* Saturated Green */
     color: white;
     border: none;
+    /* 3D Raised Effect */
+    border-top: 2px solid #68D391;    /* Light Green Highlight */
+    border-bottom: 2px solid #38A169; /* Even Softer Green Shadow (was #276749) */
+}
+
+QPushButton#ActionButton[type="start"]:hover:enabled {
+    background-color: #28AB56;
+}
+
+QPushButton#ActionButton[type="stop"]:enabled {
+    background-color: #ED8936; /* Warning Orange */
+    color: white;
+    border: none;
+    /* 3D Raised Effect */
+    border-top: 2px solid #FBD38D;    /* Light Orange Highlight */
+    border-bottom: 2px solid #DD6B20; /* Even Softer Orange Shadow (was #9C4221) */
+}
+
+QPushButton#ActionButton[type="stop"]:hover:enabled {
+    background-color: #F6AD55;
+}
+
+QPushButton#ActionButton:pressed {
+    background-color: #249A4F;
+    border-top: none; /* Pressing removes the raised effect */
+    border-bottom: none;
+    margin-top: 2px;
 }
 
 QPushButton#ActionButton:disabled {
@@ -46,35 +220,120 @@ QPushButton#ActionButton:disabled {
     border: none;
 }
 
-QPushButton#ActionButton:hover:enabled {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4299E1, stop:1 #9F7AEA);
+/* Notes Editor Styles (v16.0) */
+QDialog#NotesEditorDialog {
+    background-color: #EDF2F7; /* Matches Main Window */
 }
 
-QPushButton#ActionButton:pressed {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1D4ED8, stop:1 #6D28D9);
+QFrame#NotesEditorCard {
+    background-color: #F8FAFC;
+    border-radius: 15px;
+    /* Elevated Raised Style */
+    border-top: 2px solid #FFFFFF;
+    border-bottom: 2px solid #CBD5E0;
+    border-left: 1px solid #E2E8F0;
+    border-right: 1px solid #E2E8F0;
 }
 
-/* Legacy style support labels */
-QLabel#CoordinateLabel {
-    color: #EF4444;
-    font-weight: bold;
-}
-
-/* ScrollArea */
-QScrollArea {
+QPushButton#ActionButton[type="cancel"]:enabled {
+    background-color: #CBD5E0; /* Lighter Gray */
+    color: #4A5568;            /* Darker text for contrast on light bg */
     border: none;
-    background-color: transparent;
+    /* 3D Raised Effect */
+    border-top: 2px solid #E2E8F0;
+    border-bottom: 2px solid #A0AEC0;
 }
 
+QPushButton#ActionButton[type="cancel"]:hover:enabled {
+    background-color: #D1DBE5;
+}
+
+/* Global QCheckBox - "Heng Dong" Unified Style (v8.3.1) */
+QCheckBox {
+    spacing: 5px; /* Space between Indicator and Text (if any) */
+    color: #4A5568;
+}
+
+QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+    background-color: #FFFFFF;
+    border: 1px solid #CBD5E0;
+    border-radius: 8px; /* Circular */
+}
+
+QCheckBox::indicator:hover {
+    border: 1px solid #38A169;
+    background-color: #F0FFF4;
+}
+
+QCheckBox::indicator:checked {
+    /* Concentric Circle Effect (v9.3) */
+    background-color: qradialgradient(
+        cx:0.5, cy:0.5, radius:0.5,
+        fx:0.5, fy:0.5,
+        stop:0.5 #26D07C, /* Aurora Green Core - Slightly larger */
+        stop:0.6 #FFFFFF,  /* Outer White Ring */
+        stop:0.65 #FFFFFF
+    );
+    border: 1px solid #26D07C; /* Refined Border (was 1.5px) */
+}
+
+QCheckBox::indicator:checked:hover {
+    border: 1px solid #38D191; /* Brighter for glow */
+    background-color: qradialgradient(
+        cx:0.5, cy:0.5, radius:0.5,
+        fx:0.5, fy:0.5,
+        stop:0.5 #38D191, /* Glowing Core */
+        stop:0.6 #FFFFFF,
+        stop:0.65 #FFFFFF
+    );
+}
+
+QCheckBox::indicator:disabled:checked {
+    background-color: qradialgradient(
+        cx:0.5, cy:0.5, radius:0.5,
+        fx:0.5, fy:0.5,
+        stop:0.5 #A0AEC0, /* "Powered Off" Gray Core */
+        stop:0.6 #FFFFFF,
+        stop:0.65 #FFFFFF
+    );
+    border: 1px solid #CBD5E0;
+}
+
+/* Labels */
+QLabel#CoordinateLabel {
+    background-color: #E2FBEB; /* Slightly Darker Pale Green (v10.7) */
+    padding: 4px 10px;
+    border-radius: 8px; /* Rounded Rectangle (v10.7) */
+    color: #E53E3E; /* Red Text */
+    font-family: "Consolas", "Monaco", monospace;
+    font-weight: bold;
+    font-size: 14px; /* Enlarged */
+}
+
+/* Scroll Area Visuals - "Heng Dong" Thicker Refined Green (v5.10 Rounded Rect) */
 QScrollBar:vertical {
     border: none;
-    background: #F0F2F5;
-    width: 8px;
-    margin: 0px;
+    background-color: transparent;
+    width: 10px;
+    margin: 0px 2px 0px 2px;
 }
 
 QScrollBar::handle:vertical {
-    background: #CBD5E0;
-    border-radius: 4px;
-    min-height: 20px;
+    background: #52C41A;
+    min-height: 40px;
+    border-radius: 4px; /* Slightly squared corners (1/4 circle) */
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #73D13D;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
 }
