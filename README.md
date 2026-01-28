@@ -13,8 +13,9 @@ Flow Track is a lightweight, high-precision desktop automation utility. It empow
 - **Precise Scheduling**: Uses high-fidelity 3-spinbox time inputs (HH:MM:SS) for intuitive and accurate scheduling.
 - **Text Pasting**: Supports pasting multi-line text with an independent pop-up text editor, preserving formatting and indentation.
 - **Integrated Logging**: Real-time activity logs presented in a cohesive glassmorphic card for instant feedback.
+- **Auto-Countdown Exit**: Optional feature. Once all scheduled tasks complete, the app enters a 10s countdown and closes securely.
 - **Window Memory**: Automatically remembers and restores window position and size from the previous session.
-- **Bilingual Support**: Instant switching between **English** and **Chinese** with high-fidelity translations.
+- **Pro-grade Localization**: Instant switching between **English** and **Chinese** with full tooltips and placeholders.
 - **Portable & Persistent**: Single EXE distribution that saves user-specific settings to `config/config.ini`.
 - **High Stability**: Robust ARGB rendering and event-interception logic prevent glitches and accidental input changes.
 
@@ -66,7 +67,9 @@ pyinstaller main.spec --clean --noconfirm
 > **Note**: The configuration file `config/config.ini` will be automatically generated upon initial program execution.
 
 - **Language**: Current UI language (中文/English).
-- **Copy Range**: Steps for copying tasks (seconds incremented per copy).
+- **Copy Range**: Number of tasks to sync downwards when copying.
+- **Auto Close**: Set to `True` to enable auto-closing the app when all tasks are done.
+- **Auto Close Delay**: Countdown duration (seconds) before auto-closing.
 - **Timer Sections**: Specific settings for each task row (coordinates, clicks, paste text, etc.).
 
 ## 📄 License

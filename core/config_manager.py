@@ -9,16 +9,16 @@ class ConfigManager:
     def __init__(self):
         self.lang_config = configparser.ConfigParser()
         self.app_config = configparser.ConfigParser()
-        self.selected_language = "中文"
+        self.selected_language = "English"
         
-        # Default settings
+        # Default settings (v17.0)
         self.window_x = None
         self.window_y = None
         self.window_width = 800
-        self.window_height = 600
+        self.window_height = 800
         self.timer_canvas_height = 200
         self.copy_range = 7
-        self.auto_close_enabled = False
+        self.auto_close_enabled = True
         self.auto_close_delay_seconds = 10
         self.timers_data = []
 
@@ -56,14 +56,14 @@ class ConfigManager:
         if not self.app_config.has_section("General"):
             self.app_config.add_section("General")
 
-        self.selected_language = self.app_config.get("General", "language", fallback="中文")
+        self.selected_language = self.app_config.get("General", "language", fallback="English")
         self.window_x = self.app_config.getint("General", "window_x", fallback=None)
         self.window_y = self.app_config.getint("General", "window_y", fallback=None)
         self.window_width = self.app_config.getint("General", "window_width", fallback=800)
-        self.window_height = self.app_config.getint("General", "window_height", fallback=600)
+        self.window_height = self.app_config.getint("General", "window_height", fallback=800)
         self.timer_canvas_height = self.app_config.getint("General", "timer_canvas_height", fallback=200)
         self.copy_range = self.app_config.getint("General", "copy_range", fallback=7)
-        self.auto_close_enabled = self.app_config.getboolean("General", "auto_close_enabled", fallback=False)
+        self.auto_close_enabled = self.app_config.getboolean("General", "auto_close_enabled", fallback=True)
         self.auto_close_delay_seconds = self.app_config.getint("General", "auto_close_delay_seconds", fallback=10)
 
         self.timers_data = []
