@@ -37,11 +37,17 @@ QFrame#TimerCard[hover="true"] {
     border: 1px solid #2DBE60;
 }
 
-/* Log Text Area */
-QTextEdit#LogText {
+/* Log & Editor Text Areas */
+QTextEdit#LogText, QTextEdit#NotesEditorField {
     background: transparent;
     border: none;
     color: #1A202C;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    font-size: 10.5pt;
+    padding: 10px;
+}
+
+QTextEdit#LogText {
     font-family: 'Consolas', 'Monaco', monospace;
     font-size: 10pt;
 }
@@ -212,6 +218,34 @@ QPushButton#ActionButton:disabled {
     background: #CBD5E0;
     color: #718096;
     border: none;
+}
+
+/* Notes Editor Styles (v16.0) */
+QDialog#NotesEditorDialog {
+    background-color: #EDF2F7; /* Matches Main Window */
+}
+
+QFrame#NotesEditorCard {
+    background-color: #F8FAFC;
+    border-radius: 15px;
+    /* Elevated Raised Style */
+    border-top: 2px solid #FFFFFF;
+    border-bottom: 2px solid #CBD5E0;
+    border-left: 1px solid #E2E8F0;
+    border-right: 1px solid #E2E8F0;
+}
+
+QPushButton#ActionButton[type="cancel"]:enabled {
+    background-color: #CBD5E0; /* Lighter Gray */
+    color: #4A5568;            /* Darker text for contrast on light bg */
+    border: none;
+    /* 3D Raised Effect */
+    border-top: 2px solid #E2E8F0;
+    border-bottom: 2px solid #A0AEC0;
+}
+
+QPushButton#ActionButton[type="cancel"]:hover:enabled {
+    background-color: #D1DBE5;
 }
 
 /* Global QCheckBox - "Heng Dong" Unified Style (v8.3.1) */
