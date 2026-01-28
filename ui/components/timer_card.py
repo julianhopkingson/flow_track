@@ -5,6 +5,7 @@ from PySide6.QtGui import QPainter, QIcon, QColor
 from PySide6.QtCore import Qt, Signal, QEvent, QObject, QPropertyAnimation, QEasingCurve
 import qtawesome as qta
 from .notes_editor import NotesEditorDialog
+from ui.styles.theme_config import ThemeManager
 
 class WheelIgnoreFilter(QObject):
     """Event filter to ignore wheel events on spinboxes so list scrolling works naturally."""
@@ -25,6 +26,7 @@ class TimerCard(QFrame):
     def __init__(self, data=None, config=None):
         super().__init__()
         self.config = config # ConfigManager instance
+        self.theme_manager = ThemeManager()
         self.wheel_filter = WheelIgnoreFilter(self)
         self.init_ui()
         self.setup_effects()
@@ -258,6 +260,11 @@ class TimerCard(QFrame):
         # Fix (v13.0): Decouple button colors from param input state
         self.update_icon_states(can_edit=not is_desktop, actions_active=True)
 
+    def update_after_theme_change(self):
+        """Called by MainWindow when theme changes."""
+        is_desktop = self.chk_desktop.isChecked()
+        self.update_icon_states(can_edit=not is_desktop, actions_active=True)
+
     def update_icon_states(self, can_edit, actions_active=None):
         """
         Update colors of all icons.
@@ -268,10 +275,14 @@ class TimerCard(QFrame):
         if actions_active is None:
             actions_active = can_edit
 
-        color_param = '#26D07C' if can_edit else '#CBD5E0'
+        color_theme = self.theme_manager.get_color("ICON_COLOR")
+        color_alt = self.theme_manager.get_color("ICON_COLOR_ALT")
+        color_muted = self.theme_manager.get_color("ICON_COLOR_MUTED")
+
+        color_param = color_theme if can_edit else color_muted
         # Desktop icon should match param state or be highlighted if checked? 
         # Requirement: "Modified to Green". Keep it consistent with params for now.
-        color_desktop = '#26D07C' if can_edit else '#CBD5E0'
+        color_desktop = color_theme if can_edit else color_muted
         
         # 1. Labels (Pure Pixmap - works naturally)
         self.lbl_desktop_icon.setPixmap(qta.icon('fa5s.desktop', color=color_desktop).pixmap(18, 18))
@@ -285,24 +296,25 @@ class TimerCard(QFrame):
             target_color = active_color if actions_active else locked_color
             pix = qta.icon(icon_name, color=target_color).pixmap(size, size)
             icon = QIcon()
+            icon.addPixmap(pix, QIcon.Normal)
             icon.addPixmap(pix, QIcon.Disabled) # Override Qt's automatic fading
             btn.setIcon(icon)
 
         # Copy Button & Notes Edit Button (v14.0)
-        set_solid_icon(self.btn_copy, 'fa5s.copy', '#26D07C', '#CBD5E0', 16)
+        set_solid_icon(self.btn_copy, 'fa5s.copy', color_theme, color_muted, 16)
         # Notes button should behave like a param input (can_edit), not an action button?
         # Requirement: "Clicking edit button...". It edits the input. So it follows can_edit.
-        notes_color = '#26D07C' if can_edit else '#CBD5E0'
+        notes_color = color_theme if can_edit else color_muted
         pix_notes = qta.icon('fa5s.edit', color=notes_color).pixmap(16, 16)
         # We manually set icon for btn_notes_edit because it uses can_edit logic directly
         self.btn_notes_edit.setIcon(QIcon(pix_notes))
         self.btn_notes_edit.setEnabled(can_edit) # Logically disable it too
         
-        # Left side buttons (Management) - Also unified to #CBD5E0 when locked
-        set_solid_icon(self.btn_del, 'fa5s.trash-alt', '#EF4444', '#CBD5E0', 16)
-        set_solid_icon(self.btn_add, 'fa5s.plus', '#10B981', '#CBD5E0', 16)
-        set_solid_icon(self.btn_up, 'fa5s.arrow-up', '#4A5568', '#CBD5E0', 16)
-        set_solid_icon(self.btn_down, 'fa5s.arrow-down', '#4A5568', '#CBD5E0', 16)
+        # Left side buttons (Management) - Also unified to color_muted when locked
+        set_solid_icon(self.btn_del, 'fa5s.trash-alt', '#EF4444', color_muted, 16)
+        set_solid_icon(self.btn_add, 'fa5s.plus', '#10B981', color_muted, 16)
+        set_solid_icon(self.btn_up, 'fa5s.arrow-up', color_alt, color_muted, 16)
+        set_solid_icon(self.btn_down, 'fa5s.arrow-down', color_alt, color_muted, 16)
 
     def open_notes_editor(self):
         """Open modal dialog to edit notes."""

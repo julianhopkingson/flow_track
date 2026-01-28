@@ -15,6 +15,7 @@ Flow Track is a lightweight, high-precision desktop automation utility. It empow
 - **Window Memory**: Automatically remembers and restores window position and size from the previous session.
 - **Bilingual Support**: Instant switching between **English** and **Chinese** with high-fidelity translations.
 - **Portable & Persistent**: Single EXE distribution that saves user-specific settings to `config/config.ini`.
+- **Light/Dark Mode**: Seamlessly switch between a crisp Light theme and a professional Dark theme, with your preference automatically saved.
 - **High Stability**: Robust ARGB rendering and event-interception logic prevent glitches and accidental input changes.
 
 ## 🏗️ Architecture
@@ -65,6 +66,7 @@ pyinstaller main.spec --clean --noconfirm
 > **Note**: The configuration file `config/config.ini` will be automatically generated upon initial program execution.
 
 - **Language**: Current UI language (中文/English).
+- **Theme**: UI theme preference (Light/Dark).
 - **Copy Range**: Number of tasks to sync downwards when copying.
 - **Auto Close**: Set to `True` to enable auto-closing the app when all tasks are done.
 - **Auto Close Delay**: Countdown duration (seconds) before auto-closing.

@@ -20,6 +20,7 @@ class ConfigManager:
         self.copy_range = 7
         self.auto_close_enabled = True
         self.auto_close_delay_seconds = 10
+        self.theme = "Light"
         self.timers_data = []
 
         self.load_language()
@@ -65,6 +66,7 @@ class ConfigManager:
         self.copy_range = self.app_config.getint("General", "copy_range", fallback=7)
         self.auto_close_enabled = self.app_config.getboolean("General", "auto_close_enabled", fallback=True)
         self.auto_close_delay_seconds = self.app_config.getint("General", "auto_close_delay_seconds", fallback=10)
+        self.theme = self.app_config.get("General", "theme", fallback="Light")
 
         self.timers_data = []
         # Clear existing Timer_ sections to rebuild cleanly if needed, 
@@ -89,6 +91,7 @@ class ConfigManager:
         self.app_config.set("General", "copy_range", str(self.copy_range))
         self.app_config.set("General", "auto_close_enabled", str(self.auto_close_enabled).lower())
         self.app_config.set("General", "auto_close_delay_seconds", str(self.auto_close_delay_seconds))
+        self.app_config.set("General", "theme", self.theme)
         self.app_config.set("General", "timer_canvas_height", str(self.timer_canvas_height))
         
         if window_geo:
