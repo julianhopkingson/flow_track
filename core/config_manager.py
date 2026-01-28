@@ -48,8 +48,8 @@ class ConfigManager:
         except:
             return template
 
-    def load_app_config(self):
-        if os.path.exists(self.CONFIG_FILE):
+    def load_app_config(self, read_default_file=True):
+        if read_default_file and os.path.exists(self.CONFIG_FILE):
             self.app_config.read(self.CONFIG_FILE, encoding="utf-8")
         
         # Ensure General section exists
