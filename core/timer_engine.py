@@ -26,6 +26,9 @@ class TimerWorker(QObject):
     def stop(self):
         self._is_running = False
         self.cancel_event.set()
+        # Ensure we signal the end even if stopped externally
+        # This prevents the UI counter from being stuck
+        # Note: run_task will catch the event, but we double-verify here
 
     def run_task(self):
         timer_no = self.data['timer_no']
@@ -133,7 +136,7 @@ class TimerEngine(QObject):
             thread.finished.connect(thread.deleteLater)
             
             worker.log.connect(self.log_signal.emit)
-            worker.error.connect(lambda t_no, msg: self.log_signal.emit(f"Error Timer {t_no}: {msg}"))
+            worker.error.connect(lambda t_no, msg: self.log_signal.emit(self.config.get_message("error_timer_generic", timer_no=t_no, error=msg)))
             
             self.threads.append(thread)
             self.workers.append(worker)

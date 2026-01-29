@@ -10,3 +10,9 @@ dist/
 
 # Documentation
 doc/
+
+# Agent
+.agent/
+
+# Local Config
+config/

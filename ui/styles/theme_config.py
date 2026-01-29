@@ -24,9 +24,14 @@ class ThemeManager:
             "CHECKBOX_BG": "#FFFFFF",
             "CHECKBOX_RING": "#FFFFFF",
             "BG_COORD": "#E2FBEB",        # Restore original pale green
+            "COORD_BORDER_TOP": "#F0FFF4",
+            "COORD_BORDER_BOTTOM": "#C6F6D5",
+            "RAISED_HIGHLIGHT": "#FFFFFF",
+            "RAISED_SHADOW": "#CBD5E0",
             "ICON_COLOR": "#26D07C",      # Main active icon color
             "ICON_COLOR_ALT": "#4A5568",  # Alt buttons (up/down)
-            "ICON_COLOR_MUTED": "#CBD5E0" # Disabled/Locked color
+            "ICON_COLOR_MUTED": "#CBD5E0", # Disabled/Locked color
+            "BG_HOVER": "#F0FFF4"          # Light Green hover
         },
         "Dark": {
             "BG_WINDOW": "#0F172A",
@@ -44,9 +49,14 @@ class ThemeManager:
             "CHECKBOX_BG": "#1E293B",
             "CHECKBOX_RING": "#F8FAFC",
             "BG_COORD": "#14532D",        # Dark Green for dark mode
+            "COORD_BORDER_TOP": "#166534",
+            "COORD_BORDER_BOTTOM": "#064E3B",
+            "RAISED_HIGHLIGHT": "#334155",
+            "RAISED_SHADOW": "#020617",
             "ICON_COLOR": "#22C55E",      # Vibrant green for dark mode
             "ICON_COLOR_ALT": "#94A3B8",
-            "ICON_COLOR_MUTED": "#475569"
+            "ICON_COLOR_MUTED": "#475569",
+            "BG_HOVER": "#475569"         # Lighter Slate hover
         }
     }
 
@@ -70,13 +80,16 @@ class ThemeManager:
     def get_color(self, key):
         return self.THEMES[self._current_theme].get(key, "#000000")
 
-    def get_qss(self, template_path):
+    def get_qss(self, template_path, extra_replacements=None):
         """Read template and inject current theme colors."""
         try:
             with open(template_path, 'r', encoding='utf-8') as f:
                 template = f.read()
             
-            theme = self.THEMES[self._current_theme]
+            theme = self.THEMES[self._current_theme].copy()
+            if extra_replacements:
+                theme.update(extra_replacements)
+            
             for key, value in theme.items():
                 template = template.replace(f"[[{key}]]", value)
                 

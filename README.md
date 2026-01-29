@@ -4,19 +4,20 @@
 
 Flow Track is a lightweight, high-precision desktop automation utility. It empowers users to preset a sequence of click and text-pasting tasks at exact timestamps, freeing your hands from repetitive manual operations.
 
-![Software Preview](assets/v2.0_ui_preview.png)
+![Software Preview](assets/v2.2_ui_preview.png)
 
 - **Premium UI**: "Flow Track" Cyber-Green geek design with Glassmorphism, tailored for a fluid and high-tech user experience.
 - **Full Tooltip Support**: Every icon and input field is equipped with bilingual hover-over explanations, significantly lowering the learning curve.
 - **Precise Scheduling**: Uses high-fidelity 3-spinbox time inputs (HH:MM:SS) for intuitive and accurate scheduling.
-- **Text Pasting**: Supports pasting multi-line text with an independent pop-up text editor, preserving formatting and indentation.
+- **Text Pasting**: Supports pasting multi-line text with an independent **Zero-Latency (V6)** pop-up editor, featuring smart **Auto-Home Alignment** for long text.
 - **Integrated Logging**: Real-time activity logs presented in a cohesive glassmorphic card for instant feedback.
 - **Auto-Countdown Exit**: Optional feature. Once all scheduled tasks complete, the app enters a 10s countdown and closes securely.
 - **Window Memory**: Automatically remembers and restores window position and size from the previous session.
 - **Bilingual Support**: Instant switching between **English** and **Chinese** with high-fidelity translations.
 - **Portable & Persistent**: Single EXE distribution that saves user-specific settings to `config/config.ini`.
-- **Light/Dark Mode**: Seamlessly switch between a crisp Light theme and a professional Dark theme, with your preference automatically saved.
+- **Light/Dark Mode**: Seamlessly switch between themes with **smooth Sun/Moon animations**, automatically saving your preference.
 - **High Stability**: Robust ARGB rendering and event-interception logic prevent glitches and accidental input changes.
+- **Single Instance Lock**: Built on Windows Kernel Mutex to strictly prevent duplicate instances or accidental double-launches.
 
 ## 🏗️ Architecture
 

@@ -15,6 +15,19 @@ class WheelIgnoreFilter(QObject):
             return True
         return super().eventFilter(obj, event)
 
+class NotesFocusFilter(QObject):
+    """
+    Auto-scroll to start when focus is lost.
+    Ensures long text is displayed from the beginning ("Left Aligned" view) 
+    when not actively editing.
+    """
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.FocusOut:
+            if isinstance(obj, QLineEdit):
+                # Force view to scroll to start (Left Display)
+                obj.setCursorPosition(0) 
+        return super().eventFilter(obj, event)
+
 class TimerCard(QFrame):
     # Signals for parent communication
     delete_requested = Signal(object)
@@ -129,11 +142,15 @@ class TimerCard(QFrame):
         self.spin_s = QSpinBox()
         
         for s in [self.spin_h, self.spin_m, self.spin_s]:
-            s.setButtonSymbols(QSpinBox.NoButtons)
+            s.setButtonSymbols(QSpinBox.NoButtons) # Scheme C: Default hidden for height alignment
+            s.setWrapping(True)
             s.setAlignment(Qt.AlignCenter)
-            s.setFixedWidth(40) # Compacted for v9.8 (Padding reduced in QSS)
-            s.installEventFilter(self.wheel_filter) # Architectural Fix: Ignore scroll
-            # Removed inline 'background: white' style here, handled by theme.qss
+            s.setFixedWidth(48) 
+            s.installEventFilter(self.wheel_filter) 
+            
+            # Scheme C: Add hover detection logic
+            s.enterEvent = lambda e, sb=s: sb.setButtonSymbols(QSpinBox.UpDownArrows) if sb.isEnabled() else None
+            s.leaveEvent = lambda e, sb=s: sb.setButtonSymbols(QSpinBox.NoButtons)
 
         self.spin_h.setRange(0, 23)
         self.spin_m.setRange(0, 59)
@@ -227,6 +244,10 @@ class TimerCard(QFrame):
         self.edit_notes.setMinimumWidth(150)
         self.edit_notes.setAlignment(Qt.AlignLeft) # Code-level alignment
         
+        # Install Focus Filter for Auto-Home Alignment (v20.0)
+        self.notes_focus_filter = NotesFocusFilter(self)
+        self.edit_notes.installEventFilter(self.notes_focus_filter)
+        
         layout.addWidget(self.edit_notes, 1)
         layout.addWidget(self.btn_notes_edit)
 
@@ -262,8 +283,17 @@ class TimerCard(QFrame):
 
     def update_after_theme_change(self):
         """Called by MainWindow when theme changes."""
+        # 修复 Bug：主题切换时应保持当前的锁定状态
+        # 检查删除按钮是否被禁用，以此判断当前是否处于全局“运行时”锁定状态
+        is_card_enabled = self.btn_del.isEnabled()
         is_desktop = self.chk_desktop.isChecked()
-        self.update_icon_states(can_edit=not is_desktop, actions_active=True)
+        
+        # 只有在卡片本身可用时，才根据“显示桌面”勾选情况处理图标颜色
+        # 如果卡片被禁用，所有图标强制变灰
+        if is_card_enabled:
+            self.update_icon_states(can_edit=not is_desktop, actions_active=True)
+        else:
+            self.update_icon_states(can_edit=False, actions_active=False)
 
     def update_icon_states(self, can_edit, actions_active=None):
         """
@@ -317,10 +347,55 @@ class TimerCard(QFrame):
         set_solid_icon(self.btn_down, 'fa5s.arrow-down', color_alt, color_muted, 16)
 
     def open_notes_editor(self):
-        """Open modal dialog to edit notes."""
-        dialog = NotesEditorDialog(self.edit_notes.text(), self.config, self)
-        if dialog.exec() == QDialog.Accepted:
-            self.edit_notes.setText(dialog.get_text())
+        """
+        V6 Redesign: Interference-Free Interaction
+        """
+        # 1. 屏蔽干扰 (Suspend potential hover effects)
+        # 这一步至关重要，防止弹窗关闭瞬间触发 enterEvent -> raise_() -> Layout Thrashing
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        
+        # 2. 宿主剥离 (Re-parent to Main Window)
+        # 将 Dialog 挂载到主窗口，避免对 Card 造成布局压力
+        parent_widget = self.window() if self.window() else self
+        dialog = NotesEditorDialog(self.edit_notes.text(), self.config, parent_widget)
+        
+        # 3. 阻塞执行
+        result = dialog.exec()
+        
+        # 4. 恢复干扰屏蔽 (Restore interactions)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+        
+        # 5. 处理结果
+        if result == QDialog.Accepted:
+            new_text = dialog.get_text()
+            if new_text != self.edit_notes.text():
+                self.edit_notes.setText(new_text)
+        
+        # 6. 状态与焦点“强权恢复” (Authoritative Reset)
+        # 无论是否保存，都要确保 Card 回到可用的状态
+        self.force_state_reset()
+
+    def force_state_reset(self):
+        """
+        强制重置组件状态，无视之前的任何动画或焦点丢失。
+        """
+        # 计算理论状态
+        is_running = not self.btn_del.isEnabled()
+        is_desktop = self.chk_desktop.isChecked()
+        should_enable = (not is_running) and (not is_desktop)
+        
+        if should_enable:
+            # A. 确保启用
+            self.edit_notes.setEnabled(True)
+            self.btn_notes_edit.setEnabled(True)
+            
+            # B. 强制更新样式与重绘 (Sync Update)
+            # 此时没有 Animation 干扰，Repaint 是安全的
+            self.edit_notes.style().polish(self.edit_notes)
+            self.edit_notes.update() 
+            
+            # C. 焦点夺回 (The Focus Grab)
+            self.edit_notes.setFocus()
 
     def get_values(self):
         time_str = f"{self.spin_h.value():02d}{self.spin_m.value():02d}{self.spin_s.value():02d}"
@@ -353,6 +428,13 @@ class TimerCard(QFrame):
         self.edit_clicks.setText(str(data.get("clicks", "")))
         self.edit_interval.setText(str(data.get("interval", "")))
         self.edit_notes.setText(str(data.get("paste_text", "")))
+        
+        # [Fix] Force view to start (Left Align) on initial load
+        self.edit_notes.setCursorPosition(0)
+        
+        # Scheme F: Force LayoutDirection to LeftToRight to block Bidi-induced alignment shifts
+        self.edit_notes.setLayoutDirection(Qt.LeftToRight)
+        self.edit_notes.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         
         self.chk_desktop.blockSignals(False)
         # Apply visual state manually (Pass pure boolean to avoid truthiness bugs)

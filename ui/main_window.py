@@ -12,6 +12,7 @@ from core.config_manager import ConfigManager
 from core.timer_engine import TimerEngine
 from ui.components.timer_card import TimerCard
 from ui.styles.theme_config import ThemeManager
+from ui.widgets import SunMoonToggle
 
 class CenterAlignmentDelegate(QStyledItemDelegate):
     """Delegate to center align text in QComboBox (v11.0)."""
@@ -27,6 +28,10 @@ class LineEditClickFilter(QObject):
         
     def eventFilter(self, obj, event):
         if event.type() == QEvent.MouseButtonRelease:
+            # v12.0: Prevent popup if combo is disabled
+            if not self.combo.isEnabled():
+                return False
+                
             if self.combo.view().isVisible():
                 self.combo.hidePopup()
             else:
@@ -34,23 +39,6 @@ class LineEditClickFilter(QObject):
             return True
         return super().eventFilter(obj, event)
 
-class ThemeButtonHoverFilter(QObject):
-    """Filter to change Sun icon color on hover (Light Mode only) (v2.3)."""
-    def __init__(self, main_window):
-        super().__init__(main_window)
-        self.mw = main_window
-
-    def eventFilter(self, obj, event):
-        if self.mw.theme_manager.current_theme == "Light":
-            if event.type() == QEvent.Enter:
-                # Hover: Gold Sun
-                icon = self.mw._draw_sun_icon(QSize(32, 32), '#F6AD55') # Gold/Orange
-                self.mw.btn_theme.setIcon(icon)
-            elif event.type() == QEvent.Leave:
-                # Normal: Green Sun
-                icon = self.mw._draw_sun_icon(QSize(32, 32), '#26D07C') # Green
-                self.mw.btn_theme.setIcon(icon)
-        return super().eventFilter(obj, event)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -61,6 +49,7 @@ class MainWindow(QMainWindow):
 
         self.engine = TimerEngine(config=self.config)
         self.timer_cards = []
+        self.active_tasks_count = 0  # v8.1: Task counter for robust UI unlocking
 
         self.setWindowTitle(self.config.get_message("app_title"))
         
@@ -183,13 +172,9 @@ class MainWindow(QMainWindow):
         self.btn_stop.hide() 
         self.btn_stop.clicked.connect(self.stop_timers)
 
-        # Theme Switcher (v1.0)
-        self.btn_theme = QPushButton()
-        self.btn_theme.setFixedSize(31, 31) # Circular
-        self.btn_theme.setObjectName("IconButton")
-        self.btn_theme.clicked.connect(self.toggle_theme)
-        # Install hover filter for dynamic icon color (v2.3)
-        self.btn_theme.installEventFilter(ThemeButtonHoverFilter(self))
+        # Theme Switcher (v3.0 Custom Toggle)
+        self.btn_theme = SunMoonToggle(theme_name=self.config.theme)
+        self.btn_theme.stateChanged.connect(self.toggle_theme)
         self.update_theme_icon()
 
         # Add to Coord Group (Position requirement)
@@ -252,7 +237,9 @@ class MainWindow(QMainWindow):
     def apply_theme(self):
         """Apply the global style theme (v1.0)."""
         template_path = self.config.get_resource_path("ui/styles/theme_template.qss")
-        qss = self.theme_manager.get_qss(template_path)
+        # Inject absolute assets path for QSS url() support
+        assets_path = self.config.get_resource_path("assets").replace("\\", "/")
+        qss = self.theme_manager.get_qss(template_path, {"ASSETS_PATH": assets_path})
         if qss:
             self.setStyleSheet(qss)
         
@@ -266,75 +253,18 @@ class MainWindow(QMainWindow):
         for card in self.timer_cards:
             card.update_after_theme_change()
 
-    def toggle_theme(self):
+    def toggle_theme(self, checked=None):
+        """Toggle between Light and Dark themes (v3.0)."""
         new_theme = "Dark" if self.theme_manager.current_theme == "Light" else "Light"
         self.theme_manager.current_theme = new_theme
         self.config.theme = new_theme
         self.apply_theme()
-        self.log(f"Theme changed to {new_theme}")
+        self.log(self.config.get_message("log_theme_changed", theme=new_theme))
 
-    def _draw_sun_icon(self, size, color):
-        """Custom painted Sun icon based on user request (v2.1)."""
-        from PySide6.QtGui import QPainter, QPen, QColor, QPixmap
-        from PySide6.QtCore import QPoint
-        
-        pixmap = QPixmap(size)
-        pixmap.fill(Qt.transparent)
-        
-        p = QPainter(pixmap)
-        p.setRenderHint(QPainter.Antialiasing)
-        
-        # Center and Radius calculation
-        w, h = size.width(), size.height()
-        center = QPoint(w // 2, h // 2) # Manual center calculation
-        r = min(w, h) / 4 # Adjust radius ratio
-        
-        c = QColor(color)
-        p.setPen(QPen(c, 1.5))
-        p.setBrush(c) # Filled style (v2.2)
-        
-        # Draw central circle
-        p.drawEllipse(center, r, r)
-        
-        # Draw rays
-        p.translate(center)
-        for _ in range(8):
-            # Ray line segment relative to center (0,0)
-            # Start just outside the circle, length 2-3px
-            p.drawLine(0, -r-2, 0, -r-5) 
-            p.rotate(45)
-            
-        p.end()
-        return QIcon(pixmap)
 
     def update_theme_icon(self):
-        is_light = self.theme_manager.current_theme == "Light"
-        
-        if is_light:
-            # Custom Green Sun (Hollow + Rays)
-            icon = self._draw_sun_icon(QSize(32, 32), '#26D07C')
-            size = QSize(18, 18)
-            # Light Mode Hover Effect (Gold/Warm Tone)
-            self.btn_theme.setStyleSheet("""
-                QPushButton {
-                    border: 1px solid #E2E8F0;
-                    border-radius: 8px;
-                    background-color: #FFFFFF;
-                }
-                QPushButton:hover {
-                    background-color: #FFFAF0;  /* Floral White (Light Gold) */
-                    border: 1px solid #F6AD55;  /* Gold/Orange */
-                }
-            """)
-        else:
-            # Dark Mode: Blue Moon
-            icon = qta.icon('fa5s.moon', color='#A3BFFA')
-            size = QSize(18, 18)
-            # Reset style to default (Standard IconButton QSS)
-            self.btn_theme.setStyleSheet("")
-            
-        self.btn_theme.setIcon(icon)
-        self.btn_theme.setIconSize(size)
+        """Update switch state without triggering signal loop (v3.0)."""
+        self.btn_theme.set_theme_state(self.theme_manager.current_theme)
 
     def load_initial_data(self):
         timers_data = self.config.timers_data
@@ -456,7 +386,7 @@ class MainWindow(QMainWindow):
                     
                     enabled_timers_indices.append((idx, scheduled_time))
                 except Exception as e:
-                    self.log(f"Error Timer {idx+1}: {str(e)}")
+                    self.log(self.config.get_message("error_timer_generic", timer_no=idx+1, error=str(e)))
 
         if not enabled_timers_indices:
             # Exact legacy message key: error_no_valid_timer
@@ -482,22 +412,36 @@ class MainWindow(QMainWindow):
                 "is_last": scheduled_time == last_scheduled
             })
 
+        # v8.1: Set active tasks count
+        self.active_tasks_count = len(tasks_info)
         self.engine.start_tasks(tasks_info)
 
     def stop_timers(self):
         # v9.6: Update header icons color
         self.update_header_icons(True)
         self.engine.stop_all()
+        self.active_tasks_count = 0 # Force reset
         self.set_ui_locked(False)
         self.log(self.config.get_message("log_stop_all_timer"))
+        
+        # v8.1: Explicitly process pending events to ensure UI refresh on long sessions
+        from PySide6.QtWidgets import QApplication
+        QApplication.processEvents()
 
     def on_task_finished(self, timer_no, is_last):
+        # v8.1: Decrement counter regardless of is_last
+        if self.active_tasks_count > 0:
+            self.active_tasks_count -= 1
+            
         if is_last:
             if self.config.auto_close_enabled:
                 self.log(self.config.get_message("log_autoclose_countdown", delay=self.config.auto_close_delay_seconds))
                 QTimer.singleShot(self.config.auto_close_delay_seconds * 1000, self.auto_close_procedure)
             else:
                 self.set_ui_locked(False)
+        elif self.active_tasks_count <= 0:
+            # Fallback: Unlock if all tasks are finished even if is_last wasn't received
+            self.set_ui_locked(False)
 
     def auto_close_procedure(self):
         self.log(self.config.get_message("log_autoclose_closing"))
@@ -512,6 +456,16 @@ class MainWindow(QMainWindow):
         self.btn_load.setEnabled(not locked)
         self.combo_lang.setEnabled(not locked)
         self.combo_copy_range.setEnabled(not locked)
+        
+        # v12.0: Explicitly sync lineEdit readOnly state for combo-boxes
+        self.combo_lang.lineEdit().setEnabled(not locked)
+        self.combo_copy_range.lineEdit().setEnabled(not locked)
+
+        # v12.0.1: Visual cursor feedback (Qt doesn't support 'cursor' in QSS)
+        cursor = Qt.ForbiddenCursor if locked else Qt.ArrowCursor
+        self.combo_lang.setCursor(cursor)
+        self.combo_copy_range.setCursor(cursor)
+
         for card in self.timer_cards:
             card.set_editing_enabled(not locked)
 
@@ -536,7 +490,7 @@ class MainWindow(QMainWindow):
         for card in self.timer_cards:
             card.retranslate_ui()
             
-        self.log(f"Language changed to {lang}")
+        self.log(self.config.get_message("log_lang_changed", lang=lang))
 
     def on_copy_range_changed(self, val):
         self.config.copy_range = int(val)
@@ -584,7 +538,7 @@ class MainWindow(QMainWindow):
                 self.combo_lang.setCurrentText(self.config.selected_language)
                 self.change_language(self.config.selected_language)
             except Exception as e:
-                self.log(f"Error loading config: {str(e)}")
+                self.log(self.config.get_message("error_config_load_generic", error=str(e)))
 
     def closeEvent(self, event):
         # Stop engine first

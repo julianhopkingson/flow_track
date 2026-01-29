@@ -48,7 +48,7 @@ QTextEdit#LogText, QTextEdit#NotesEditorField {
 }
 
 QTextEdit#LogText {
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     font-size: 10pt;
 }
 
@@ -79,20 +79,65 @@ QLineEdit, QSpinBox, QComboBox {
     border-radius: 8px;
     padding: 6px 10px;
     color: [[TEXT_PRIMARY]]; 
-    qproperty-alignment: 'AlignCenter'; /* Force text centering (v12.0) */
 }
 
 /* Specific Override for Notes Field (v14.2: Reverted to QLineEdit for layout stability) */
 QLineEdit#edit_notes {
-    qproperty-alignment: 'AlignLeft';
     padding-left: 10px;
+    padding-right: 12px;
 }
 
 
 /* Specific Fix for Narrow SpinBoxes (v9.8) */
 QSpinBox {
-    padding: 6px 2px; /* Reduce horizontal padding to fit 2 digits */
-    qproperty-alignment: 'AlignCenter'; /* Force centering (v10.2) */
+    /* Reset to symmetric padding - 2 digits won't overlap buttons (v17.2) */
+    padding: 6px 0px;
+}
+
+/* SpinBox Buttons - Standard Styling (v19.0) */
+QSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 18px; 
+    border-left: 1px solid [[INPUT_BORDER]]; 
+    border-top-right-radius: 8px; 
+    background: transparent;
+}
+
+QSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 18px;
+    border-left: 1px solid [[INPUT_BORDER]];
+    border-bottom-right-radius: 8px; 
+    background: transparent;
+}
+
+/* Button Hover State */
+QSpinBox::up-button:hover:!disabled, QSpinBox::down-button:hover:!disabled {
+    background-color: [[BG_HOVER]];
+}
+
+/* Arrow Base State (Grey) */
+QSpinBox::up-arrow { 
+    image: url("[[ASSETS_PATH]]/spin_up.svg");
+    width: 10px;
+    height: 10px;
+}
+
+QSpinBox::down-arrow { 
+    image: url("[[ASSETS_PATH]]/spin_down.svg");
+    width: 10px;
+    height: 10px;
+}
+
+/* Arrow Green Highlight on Button Hover */
+QSpinBox::up-button:hover:!disabled { 
+    image: url("[[ASSETS_PATH]]/spin_up_green.svg");
+}
+
+QSpinBox::down-button:hover:!disabled { 
+    image: url("[[ASSETS_PATH]]/spin_down_green.svg");
 }
 
 /* Hide Dropdown Arrow for Cleaner Look */
@@ -304,13 +349,18 @@ QCheckBox::indicator:disabled:checked {
 /* Labels */
 QLabel#CoordinateLabel {
     background-color: [[BG_COORD]]; 
-    padding: 0px;
+    padding: 0px 8px;
     qproperty-alignment: 'AlignCenter';
     border-radius: 8px; /* Rounded Rectangle (v10.7) */
     color: [[ACCENT_RED]]; /* Red Text */
-    font-family: "Consolas", "Monaco", monospace;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     font-weight: bold;
     font-size: 14px; /* Enlarged */
+    /* 3D Raised Effect */
+    border-top: 2px solid [[COORD_BORDER_TOP]];
+    border-bottom: 2px solid [[COORD_BORDER_BOTTOM]];
+    border-left: 1px solid [[COORD_BORDER_BOTTOM]];
+    border-right: 1px solid [[COORD_BORDER_BOTTOM]];
 }
 
 /* Scroll Area Visuals - "Heng Dong" Thicker Refined Green (v5.10 Rounded Rect) */
