@@ -48,7 +48,7 @@ QTextEdit#LogText, QTextEdit#NotesEditorField {
 }
 
 QTextEdit#LogText {
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     font-size: 10pt;
 }
 
@@ -304,13 +304,18 @@ QCheckBox::indicator:disabled:checked {
 /* Labels */
 QLabel#CoordinateLabel {
     background-color: [[BG_COORD]]; 
-    padding: 0px;
+    padding: 0px 8px;
     qproperty-alignment: 'AlignCenter';
     border-radius: 8px; /* Rounded Rectangle (v10.7) */
     color: [[ACCENT_RED]]; /* Red Text */
-    font-family: "Consolas", "Monaco", monospace;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     font-weight: bold;
     font-size: 14px; /* Enlarged */
+    /* 3D Raised Effect */
+    border-top: 2px solid [[COORD_BORDER_TOP]];
+    border-bottom: 2px solid [[COORD_BORDER_BOTTOM]];
+    border-left: 1px solid [[COORD_BORDER_BOTTOM]];
+    border-right: 1px solid [[COORD_BORDER_BOTTOM]];
 }
 
 /* Scroll Area Visuals - "Heng Dong" Thicker Refined Green (v5.10 Rounded Rect) */

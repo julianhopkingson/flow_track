@@ -262,8 +262,17 @@ class TimerCard(QFrame):
 
     def update_after_theme_change(self):
         """Called by MainWindow when theme changes."""
+        # 修复 Bug：主题切换时应保持当前的锁定状态
+        # 检查删除按钮是否被禁用，以此判断当前是否处于全局“运行时”锁定状态
+        is_card_enabled = self.btn_del.isEnabled()
         is_desktop = self.chk_desktop.isChecked()
-        self.update_icon_states(can_edit=not is_desktop, actions_active=True)
+        
+        # 只有在卡片本身可用时，才根据“显示桌面”勾选情况处理图标颜色
+        # 如果卡片被禁用，所有图标强制变灰
+        if is_card_enabled:
+            self.update_icon_states(can_edit=not is_desktop, actions_active=True)
+        else:
+            self.update_icon_states(can_edit=False, actions_active=False)
 
     def update_icon_states(self, can_edit, actions_active=None):
         """

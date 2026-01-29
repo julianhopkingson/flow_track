@@ -24,6 +24,10 @@ class ThemeManager:
             "CHECKBOX_BG": "#FFFFFF",
             "CHECKBOX_RING": "#FFFFFF",
             "BG_COORD": "#E2FBEB",        # Restore original pale green
+            "COORD_BORDER_TOP": "#F0FFF4",
+            "COORD_BORDER_BOTTOM": "#C6F6D5",
+            "RAISED_HIGHLIGHT": "#FFFFFF",
+            "RAISED_SHADOW": "#CBD5E0",
             "ICON_COLOR": "#26D07C",      # Main active icon color
             "ICON_COLOR_ALT": "#4A5568",  # Alt buttons (up/down)
             "ICON_COLOR_MUTED": "#CBD5E0" # Disabled/Locked color
@@ -44,6 +48,10 @@ class ThemeManager:
             "CHECKBOX_BG": "#1E293B",
             "CHECKBOX_RING": "#F8FAFC",
             "BG_COORD": "#14532D",        # Dark Green for dark mode
+            "COORD_BORDER_TOP": "#166534",
+            "COORD_BORDER_BOTTOM": "#064E3B",
+            "RAISED_HIGHLIGHT": "#334155",
+            "RAISED_SHADOW": "#020617",
             "ICON_COLOR": "#22C55E",      # Vibrant green for dark mode
             "ICON_COLOR_ALT": "#94A3B8",
             "ICON_COLOR_MUTED": "#475569"

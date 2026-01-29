@@ -48,7 +48,7 @@ QTextEdit#LogText, QTextEdit#NotesEditorField {
 }
 
 QTextEdit#LogText {
-    font-family: 'Consolas', 'Monaco', monospace;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     font-size: 10pt;
 }
 
@@ -307,7 +307,7 @@ QLabel#CoordinateLabel {
     padding: 4px 10px;
     border-radius: 8px; /* Rounded Rectangle (v10.7) */
     color: #E53E3E; /* Red Text */
-    font-family: "Consolas", "Monaco", monospace;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     font-weight: bold;
     font-size: 14px; /* Enlarged */
 }
