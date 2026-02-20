@@ -26,9 +26,7 @@ class TimerWorker(QObject):
     def stop(self):
         self._is_running = False
         self.cancel_event.set()
-        # Ensure we signal the end even if stopped externally
-        # This prevents the UI counter from being stuck
-        # Note: run_task will catch the event, but we double-verify here
+        # 方案 C: 不需要做任何额外操作。cancel_event 会立刻打断所有的 wait() 阻塞。
 
     def run_task(self):
         timer_no = self.data['timer_no']
@@ -57,6 +55,8 @@ class TimerWorker(QObject):
             self.cancel_event.wait(min(sleep_duration, wait_seconds))
 
         if self.cancel_event.is_set():
+            # 方案 C: 削减冗余跨线程信号，防止死锁
+            # 取消时仅发必须要发的日志，不发 finished(.., False) 以外的多余信号
             self.log.emit(self.get_msg("log_timer_cancel", timer_no=timer_no))
             self.finished.emit(timer_no, False)
             return
@@ -67,10 +67,15 @@ class TimerWorker(QObject):
                 self.log.emit(self.get_msg("log_timer_show_desktop", timer_no=timer_no))
                 win32api.keybd_event(win32con.VK_LWIN, 0, 0, 0)
                 win32api.keybd_event(ord('D'), 0, 0, 0)
-                time.sleep(0.05)
+                
+                # 方案 C: 将微秒级 time.sleep 也替换为等效的 wait(), 并允许一键击穿
+                if self.cancel_event.wait(0.05): return
+                
                 win32api.keybd_event(ord('D'), 0, win32con.KEYEVENTF_KEYUP, 0)
                 win32api.keybd_event(win32con.VK_LWIN, 0, win32con.KEYEVENTF_KEYUP, 0)
-                time.sleep(0.5)
+                
+                if self.cancel_event.wait(0.5): return
+                
                 self.log.emit(self.get_msg("log_timer_show_desktop_done", timer_no=timer_no))
             else:
                 self.log.emit(self.get_msg("log_timer_begin", timer_no=timer_no))
@@ -92,7 +97,10 @@ class TimerWorker(QObject):
                     if paste_text:
                         self.log.emit(self.get_msg("log_timer_paste_begin", timer_no=timer_no))
                         pyperclip.copy(paste_text)
-                        time.sleep(0.1)
+                        
+                        # 微步休眠
+                        if self.cancel_event.wait(0.1): break
+                        
                         win32api.keybd_event(win32con.VK_CONTROL, 0, 0, 0)
                         win32api.keybd_event(ord('V'), 0, 0, 0)
                         win32api.keybd_event(ord('V'), 0, win32con.KEYEVENTF_KEYUP, 0)
@@ -100,7 +108,10 @@ class TimerWorker(QObject):
                         self.log.emit(self.get_msg("log_timer_paste_completed", timer_no=timer_no))
                     
                     if i < clicks - 1:
-                        time.sleep(interval)
+                        # 方案 C 核心：将致命的 time.sleep(interval) 升级为可瞬间打断的微步轮询
+                        if self.cancel_event.wait(interval):
+                            self.log.emit(self.get_msg("log_timer_cancel", timer_no=timer_no))
+                            break
                 
                 self.log.emit(self.get_msg("log_timer_completed", timer_no=timer_no))
         except Exception as e:
@@ -117,6 +128,10 @@ class TimerEngine(QObject):
         self.config = config
         self.threads = []
         self.workers = []
+        # 方案 C: 废弃线程接管池 (Zombie Trap Safe-house)
+        # 引用保留，以免底层 C++ QThread 被 Python GC 过早误杀，引发 Fatal Crash
+        self._zombie_pool = []
+        self._pool_lock = threading.Lock()
 
     def start_tasks(self, tasks_info):
         self.stop_all()
@@ -133,7 +148,10 @@ class TimerEngine(QObject):
             worker.finished.connect(thread.quit)
             worker.finished.connect(self.task_finished.emit)
             worker.finished.connect(worker.deleteLater)
+            
+            # 方案 C: 在真正终结时，从废弃池中安全移除引用
             thread.finished.connect(thread.deleteLater)
+            thread.finished.connect(lambda t=thread: self._clean_zombie(t))
             
             worker.log.connect(self.log_signal.emit)
             worker.error.connect(lambda t_no, msg: self.log_signal.emit(self.config.get_message("error_timer_generic", timer_no=t_no, error=msg)))
@@ -142,11 +160,35 @@ class TimerEngine(QObject):
             self.workers.append(worker)
             thread.start()
 
+    def _clean_zombie(self, thread):
+        """线程确实完结后做最终的引用释放"""
+        with self._pool_lock:
+            if thread in self._zombie_pool:
+                self._zombie_pool.remove(thread)
+
     def stop_all(self):
+        """
+        方案 C 核心：异步非阻塞放养退出 (Main-Thread Unobstructing)
+        绝不在主线程调用 thread.wait() 导致同步死锁。
+        """
         for worker in self.workers:
-            worker.stop()
-        for thread in self.threads:
-            thread.quit()
-            thread.wait()
+            try:
+                # 微步休眠被一键击穿，线程将在底层迅速跑到终点
+                worker.stop()
+            except RuntimeError:
+                pass
+            
+        with self._pool_lock:
+            for thread in self.threads:
+                try:
+                    thread.quit()
+                    # 扔进僵尸接管池，防止此时的 lists 置空导致立刻 GC 闪退
+                    self._zombie_pool.append(thread)
+                except RuntimeError:
+                    # 线程对应的 C++ 对象已经被 Qt GC (如通过 deleteLater) 清理完毕
+                    # 这是自动完成定时任务之后的正常现象，予以静默忽略
+                    pass
+                
         self.threads = []
         self.workers = []
+

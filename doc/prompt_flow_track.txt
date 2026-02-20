@@ -1,0 +1,553 @@
+请作为 首席UI设计师 (Top UI designer)，我需要你设计出最完美的UI
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+■■■■■■■■■■■■■■■■■■■■
+基于最新更改，生成三个 Git 约定式提交 (Conventional Commits) 版本的单行英文消息：简洁版 (Concise)、专业版 (Professional)、易懂版 (User-friendly)。
+
+init: version 1.0 - automated mouse mover to prevent system sleep and screen lock
+refactor: organized project files by moving icon/language to assets folder and config to config folder for a cleaner structure
+milestone: version 2.0 - Production Release (Crystal Green UI)
+
+
+从上一次commit到现在为止的更改
+1 更新readme，只修改和增加必要的地方，尽量不删除
+2 生成三个 Git 约定式提交 (Conventional Commits) 版本的单行英文消息：简洁版 (Concise)、专业版 (Professional)、易懂版 (User-friendly)。
+以milestone: version 2.0 开头
+
+要点出pre-deploy
+■■■■■■■■■■■■■■■■■■■■
+
+记住
+1 打包前一定要先执行 taskkill /F /IM flow_track.exe /T
+2 每次修改完成后重新打包，并打开app，但不要关闭它，这样我可以直接确认效果
+3 没有我的明确指示，绝不能擅自执行任何 commit、push 等版本控制相关动作。
+
+执行，并在修改完成后重新打包并确认是否出错和修改对象是否已修复
+■■■■■■■■■■■■■■■■■■■■
+把这次的修改，合并进最新的那个commit里面，并push到GitHub
+
+记住，没有我的明确指示，绝不能擅自执行任何 commit、push 等版本控制相关动作。
+
+■■■■■■■■■■■■■■■■■■■■
+
+# Step 0: 安装项目依赖
+pip install -r requirements.txt
+
+# Step 1: 关闭打开的进程
+taskkill /F /IM flow_track.exe /T
+
+
+# Step 2: 打包生成 EXE (清理缓存并自动确认)
+pyinstaller main.spec --clean --noconfirm
+# --clean: 打包前清理临时缓存
+# --noconfirm: 自动覆盖现有 dist 目录而不提示
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+执行
+
+记住
+1 打包前一定要先执行 taskkill /F /IM flow_track.exe /T
+2 每次修改完成后重新打包，并打开app，但不要关闭它，这样我可以直接确认效果
+3 没有我的明确指示，绝不能擅自执行任何 commit、push 等版本控制相关动作。
+
+打包时参考下面的代码
+"""
+# Step 1: 关闭打开的进程
+taskkill /F /IM flow_track.exe /T
+
+# Step 2: 打包生成 EXE (清理缓存并自动确认)
+pyinstaller main.spec --clean --noconfirm
+# --clean: 打包前清理临时缓存
+# --noconfirm: 自动覆盖现有 dist 目录而不提示
+"""
+
+■■■■■■■■■■■■■■■■■■■■
+在md文件中添加上修改前后的流程图，并标注bug原因和对策，这样对比更方便看出来如何修改的
+
+■■■■■■■■■■■■■■■■■■■■
+我发现一个问题
+若是我手动按了停止按钮，再关闭app时，当前设定会被保存
+但若是app在所有定时器自动停止后，自动关闭时，当前设定是有可能不会被保存的。
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+1 light模式下看到了timer card的阴影变化，但整个timer card的大小不变，也就是没看到缩放效果
+2 这个效果变化希望在head card和log card上也有。
+3 dark模式好像完全没有变化？
+4 毛玻璃效果没看到啊
+
+■■■■■■■■■■■■■■■■■■■■
+我只看到背景颜色变了，
+没看到其它变化，比如IOS的UI风格，毛玻璃效果等
+
+■■■■■■■■■■■■■■■■■■■■
+就按你说的方案B来执行
+另外，潜在风险评估及其应对策略 这部分怎么办？也会一起对应吗？
+
+记住
+1 打包前一定要先执行 taskkill /F /IM flow_track.exe /T
+2 每次修改完成后重新打包，并打开app，但不要关闭它，这样我可以直接确认效果
+3 没有我的明确指示，绝不能擅自执行任何 commit、push 等版本控制相关动作。
+
+打包时参考下面的代码
+"""
+# Step 1: 关闭打开的进程
+taskkill /F /IM flow_track.exe /T
+
+# Step 2: 打包生成 EXE (清理缓存并自动确认)
+pyinstaller main.spec --clean --noconfirm
+# --clean: 打包前清理临时缓存
+# --noconfirm: 自动覆盖现有 dist 目录而不提示
+"""
+
+■■■■■■■■■■■■■■■■■■■■
+这是现在的UI，有light和dark两种模式。
+我希望改进UI
+- 一定不要改变页面布局和内部的处理逻辑
+- 需要让界面变得更美观，特别是增加更多交互时的放大缩小等特效，
+- 配色和UI设计模仿iOS的UI，必要时增加毛玻璃等特效
+
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+对于本次更改，生成三个 Git 约定式提交 (Conventional Commits) 版本的单行英文消息：简洁版 (Concise)、专业版 (Professional)、易懂版 (User-friendly)。
+
+fix(timer): eliminate UI freeze deadlock via thread decoupling and event wait
+
+■■■■■■■■■■■■■■■■■■■■
+flow_track.spec 这个文件是干嘛的？还需要吗？
+
+> flow_track.spec 是 PyInstaller 的编译配置文件（相当于一个 Python 脚本）。
+> 结论：不需要保留，可以直接安全删除。
+
+■■■■■■■■■■■■■■■■■■■■
+就按你说的方案C，分阶段来执行
+另外，潜在风险评估及其应对策略 这部分怎么办？也会一起对应吗？
+
+记住
+1 打包前一定要先执行 taskkill /F /IM flow_track.exe /T
+2 每次修改完成后重新打包，并打开app，但不要关闭它，这样我可以直接确认效果
+3 没有我的明确指示，绝不能擅自执行任何 commit、push 等版本控制相关动作。
+■■■■■■■■■■■■■■■■■■■■
+我发现一个问题
+大部分的时候点击开始后，切换成为停止按钮，到这儿正常
+停止按钮有时候点击它没有反应，就像是app给freeze了一样。当然若是这时候直接关掉app，也没法触发保存config的动作
+这个现象有时候是长时间（几个小时）运行时出现的，有时候是几十分钟就会出现。
+当然大部分时候是正常的。
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+我要把v2.2也release到github上
+这是之前v2.1的Release title和Release notes
+给我生成v2.2的
+
+
+■■■■■■■■■■■■■■■■■■■■
+我是windows11，当我快速点击flow track图标后，发现可以启动多个flow track
+如何让flow track只能启动一个？即使点击多次
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+切换到中文时
+[20:23:12] Language changed to 中文
+这个message应该有中文版才对。
+
+当languange为中文时，下面的message应该是中文才对。
+[20:23:06] Theme changed to Light
+[20:23:07] Theme changed to Dark
+
+
+希望你全面检查现在的project，看看是否还有漏掉的地方，给出全面的列表和修改方案
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+现在time入力框的上下按键，是一直显示。
+改为鼠标放在time区域才显示
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+现在time入力只能手动typing输入，不方便
+给time入力框添加上图2那种上下按键，而且鼠标放上去会变成绿色
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+我发现一个问题，就是
+1 我点了开始，然后会变成停止按钮，然后点停止按钮，计时器取消，并变回开始按钮，这是正确流程
+2 但若是我开始以后，计时器一直在等待了几个小时以后，我点停止按钮，计时器的确是取消，却没有变回开始按钮，见图1
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+我发现一个问题
+light mode下点击开始按钮之后，
+button都灰色了，这是对的，见图1
+
+这时切换到dark mode，button又亮了，见图2
+再切回light mode，button还是亮的，见图3
+
+说明mode切换时，对于各个button状态的设定不对
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+■■■■■■■■■■■■■■■■■■■■
+用图1替换./assets下面的v2.0_ui_preview.png
+用图2替换./assets下面的v2.0_ui_preview_cn.png
+
+然后把修改，合并进最新的commit，并push到GitHub
+
+
+■■■■■■■■■■■■■■■■■■■■
+
+这部分的代码，特别是切换的代码，列出来
+
+
+light / dark mode切换按钮的效果，我希望模仿图1和图2的样子
+
+代码参考
+"""
+主题切换的核心代码实现。
+
+主要包含两部分：切换逻辑处理（交互与状态同步）和动画平滑过渡（ thumb 位置的属性动画）。
+
+1. 切换逻辑 (Logic & Signals)
+这部分代码处理用户点击后的状态变更，以及与主窗口主题应用逻辑的连接。
+
+python
+# located in ui/widgets.py -> SunMoonToggle 类
+def checkStateSet(self):
+    """当 QCheckBox 状态改变时触发（点击切换）"""
+    super().checkStateSet()
+    self.anim.stop()
+    # 动画结束值：Dark 模式移动到右侧(36.0)，Light 模式回到左侧(4.0)
+    self.anim.setEndValue(36.0 if self.isChecked() else 4.0)
+    self.anim.start()
+def set_theme_state(self, theme_name):
+    """手动状态同步（初始化或主题强制应用时执行）"""
+    self.theme_name = theme_name
+    self.blockSignals(True)  # 避免触发点击回调，造成循环
+    self.setChecked(theme_name == "Dark")
+    self.blockSignals(False)
+    self._thumb_pos = 36.0 if theme_name == "Dark" else 4.0
+    self.update()
+2. 动画实现 (Animation Property)
+通过 Qt 动画框架确保圆形滑块（Thumb）能够丝滑地在日/月图标之间移动。
+
+python
+# located in ui/widgets.py -> SunMoonToggle.__init__
+self._thumb_pos = 36.0 if theme_name == "Dark" else 4.0
+# 定义属性动画：操作 self 的 b"thumb_pos" 属性
+self.anim = QPropertyAnimation(self, b"thumb_pos", self)
+self.anim.setDuration(400)               # 动画时长 400ms
+self.anim.setEasingCurve(QEasingCurve.OutCubic) # 使用 OutCubic 缓动，先快后慢
+# 定义 Property 接口
+def get_thumb_pos(self): return self._thumb_pos
+def set_thumb_pos(self, pos):
+    self._thumb_pos = pos
+    self.update() # 每一帧刷新界面，调用 paintEvent
+thumb_pos = Property(float, get_thumb_pos, set_thumb_pos)
+3. 主窗口调用 (Controller)
+
+"""
+
+你先分析，然后设计一个如何代替现在light / dark mode切换按钮的方案
+记住，只改变light / dark mode按钮，不影响其它部分
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+图1是现在的UI，我想在Header的红框位置，也就是开始按钮的左边增加一个light/dark mode切换的按钮，参考图2的红框
+图1也就是现在的UI，就是Light mode
+而Dark mode的配色请参考图3
+1 记住只切换配色，而不修改任何功能
+2 颜色搭配集中在一个统一的文件里面管理，而不是各个画面单独配置
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+git reset --soft HEAD~1
+git reflog
+git stash push -m "temp_changes"
+git reset --hard ae68ac3
+git push origin main --force
+
+
+git add README.md README_CN.md
+git commit --amend --no-edit
+git push origin main --force
+■■■■■■■■■■■■■■■■■■■■
+下面来美化这个文本编辑弹窗
+1 入力框需要card化，增加立体感，参考主页面的header card效果
+2 save 和 cancel按钮UI太丑了，你可以参考 主页面的 开始 和 停止按钮的UI设计
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+执行，并在修改完成后重新打包并确认是否出错和达到预期效果
+
+■■■■■■■■■■■■■■■■■■■■
+milestone: version 2.0 - Production Release
+
+■■■■■■■■■■■■■■■■■■■■
+header和log部分的UI你怎么修改？
+我希望方案的结构清晰，比如整体如何，各个部分如何
+三大部分都是card效果，header，计时器，log 这样结构清晰
+鼠标放到某个card上会you缩放动画，并加强立体悬浮效果
+请更新方案
+
+■■■■■■■■■■■■■■■■■■■■
+图1是现在的UI
+在不改变现有任何互动逻辑的基础上
+优化现在的UI，让其更加美观，增加半透明效果，card的立体效果，缩放动画等
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+■■■■■■■■■■■■■■■■■■■■
+用图1替换v2.0_ui_preview.png
+用图2替换v2.0_ui_preview_cn.png
+
+然后把修改，合并进最新的commit，并push到GitHub
+■■■■■■■■■■■■■■■■■■■■
+refactor: refactored core architecture to PySide6 with high-fidelity UI restoration
+
+■■■■■■■■■■■■■■■■■■■■
+1 显示桌面 没被选中时，为何只有时间是白色背景？而x，y等项目虽然可以编辑带，但背景仍然是灰色
+2 现在若是focus放到时间入力框中，鼠标滚轮滚动时，时间会变化，我不希望这样
+
+请作为 首席架构师 (Lead Architect)，我需要你找出原因，并给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+我点了结束按钮，log里面也显示定时器被取消了，但结束按钮还是亮的，开始按钮还是灰的，见图1
+你看看flow_track_legacy.py当中点了结束按钮是什么逻辑。
+
+请作为 首席架构师 (Lead Architect)，我需要你找出原因，并给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+1 点了开始以后，若是所有定时器都无效，开始 和 结束 这两个按钮的状态是怎样的？
+2 点了开始以后，若是有一个或多个定时器是有效的，开始 和 结束 这两个按钮的状态是怎样的？
+
+我点了开始，定时器也开始工作了，但开始按钮还是亮的，结束按钮还是灰的，见图1
+但结束按钮点击后，计算器能停止，见图2
+
+
+我手动点 结束 ，为何也会触发"最后的定时器已完成。将在 10 秒后自动关闭..."?
+你看看flow_track_legacy.py当中是什么逻辑才会触发"最后的定时器已完成。将在 10 秒后自动关闭..."
+
+■■■■■■■■■■■■■■■■■■■■
+显示桌面 选项 跟 x，y，点击次数和间隔秒数这4项的互动逻辑请从flow_track_legacy.py当中获取，并告诉我
+
+■■■■■■■■■■■■■■■■■■■■
+点了copy按钮以后，复制的对象应该只是hh和mm，而秒数是顺序加1，而其它项目不复制。
+你看看flow_track_legacy.py是不是这个逻辑
+
+请仔细分析flow_track_legacy.py当中点击复制后的逻辑处理，把它写成md文件，给出全面详细的设计解决方案，并列举出所有可能风险。
+务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'
+■■■■■■■■■■■■■■■■■■■■
+1 时间显示错误
+2 下面的问题依旧，见图1，正确的应该是图2的老版本那样的log
+"""
+点了开始后，没有真的开始，而且下面的log无条件输出"[23:25:22] ■■■启动定时器"
+这说明逻辑不对，请参考flow_track_legacy.py的逻辑，进行修复
+"""
+请仔细分析flow_track_legacy.py当中点击开始后的逻辑处理，把它写成md文件，给出全面详细的设计解决方案，并列举出所有可能风险。
+务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'
+
+■■■■■■■■■■■■■■■■■■■■
+"""
+点了开始后，没有真的开始，而且下面的log无条件输出"[23:25:22] ■■■启动定时器"
+这说明逻辑不对，请参考flow_track_legacy.py的逻辑，进行修复
+"""
+这个问题没有修复
+
+请仔细分析flow_track_legacy.py当中点击开始后的逻辑处理，把它写成md文件，给出全面详细的设计解决方案，并列举出所有可能风险。
+务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+1 logo没显示
+2 点了开始后，没有真的开始，而且下面的log无条件输出"[23:25:22] ■■■启动定时器"
+这说明逻辑不对，请参考flow_track_legacy.py的逻辑，进行修复
+3 exe打开时，应该自动读取config目录下的config.ini文件，并进行配置。若是没有就会显示初始值。
+而exe关闭时，会保存当前设置到config目录下的config.ini文件
+里面包含window_x = 540，window_y = 232这样记录打开窗口位置的信息
+
+请作为 首席架构师 (Lead Architect)，我需要你全面详细的设计解决方案，并列举出所有可能风险。
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+■■■■■■■■■■■■■■■■■■■■
+1 我希望新的UI的定时器每一行的各个元素按老的UI一样的排序和逻辑，见图1和图2
+2 新的UI的顶部，缺少了很多元素，比如语言切换，读取config，以及实时坐标，请按老的UI一样的排序和逻辑去做，见图3和图4
+3 扩充整个app的windows大小，加大定时器card的高度，因为它是最主要的部分，而不是现在这样一个log标题占了半个屏幕，见图5
+总之，这次的UI修改实在太差了
+
+请作为 首席架构师 (Lead Architect)，我需要你全面详细的设计解决方案，并列举出所有可能风险。
+方案写入solution_ui_redesign.md
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+■■■■■■■■■■■■■■■■■■■■
+执行，并在build 之后自己打开看看是否出错
+
+■■■■■■■■■■■■■■■■■■■■
+
+接下来我们开始改造UI，图1是现在的UI，
+1 请把它改得美观大方，增加一些动画缩放效果什么的
+2 加上light/dark mode切换
+3 UI风格可以参考图2和图3
+
+请作为 首席架构师 (Lead Architect)，我需要你全面详细的设计解决方案，并列举出所有可能风险。
+方案为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+
+记住尽量保留现有UI布局，你需要做的是美化，请把这个加入md文件
+
+
+
+
+
+
+
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+init: version 1.0 - launch Flow Track with smart scheduling, coordinate picking, and fresh UI
+
+■■■■■■■■■■■■■■■■■■■■
+生成三个 Git 约定式提交 (Conventional Commits) 版本的单行英文消息：简洁版 (Concise)、专业版 (Professional)、易懂版 (User-friendly)。
+开头是init: version 1.0
+记住没有我的明确指示，不能擅自做任何commit
+
+■■■■■■■■■■■■■■■■■■■■
+这是GitHub链接，请连上，但不commit
+https://github.com/julianhopkingson/flow_track.git
+记住没有我的明确指示，不能擅自做任何commit
+
+■■■■■■■■■■■■■■■■■■■■
+给我生成gitignore文件
+doc文件夹加入ignore
+
+我发现很多都是我没有的文件，有必要写在ignore里面吗？
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+我打算上传到github，给我一个合适的description
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+还需要生成reamd文件，一个英文版，一个中文版
+记得利用
+v1.0_ui_preview.png
+v1.0_ui_preview_cn.png
+■■■■■■■■■■■■■■■■■■■■
+图1 保存为v1.0_ui_preview.png
+图2 保存为v1.0_ui_preview_cn.png
+■■■■■■■■■■■■■■■■■■■■
+执行，并在build 之后自己打开看看是否出错
+■■■■■■■■■■■■■■■■■■■■
+英文改为Flow Track
+中文改为流痕
+请先列出来哪些文件需要修改，记得包括ico名字等
+给出修改前后对比的方案列表，先不修改
+
+■■■■■■■■■■■■■■■■■■■■
+定时鼠标点击 和 Mouse Clicker 这样的名字太老土了，给我三个建议的中英文的名字
+
+
+■■■■■■■■■■■■■■■■■■■■
+执行，并在build 之后自己打开看看是否出错
+■■■■■■■■■■■■■■■■■■■■
+mouse-clicker.ico
+这个文件
+1 希望移动到assets目录中
+2 能否设定到exe里面，而不是外部显示？
+请作为 首席架构师 (Lead Architect)，我需要你全面详细的设计解决方案，并列举出所有可能风险。
+方案为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+language.ini也应该跟ico一样放到assets里面，并设定到exe里面，而不是外部显示
+
+
+
+
+■■■■■■■■■■■■■■■■■■■■
+在md文件下写一个md文件，把你分析的这个project的功能尽量详细的不遗漏的描述出来，包括我发给你的这个界面也放进去
+作为version1.0的描述文档，记住不是reamde，readme会另外写
+■■■■■■■■■■■■■■■■■■■■
+
+这是我做的一个工具，界面如图。
+请分析其内容，并把分析结果作为md文件放在doc目录下
+记住，只分析，不改变任何代码
