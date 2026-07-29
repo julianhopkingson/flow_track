@@ -279,7 +279,7 @@ class TimerCard(QFrame):
         
         # v9.5 Statification: Update Icon colors based on editability
         # Fix (v13.0): Decouple button colors from param input state
-        self.update_icon_states(can_edit=not is_desktop, actions_active=True)
+        self.update_icon_states(can_edit=not is_desktop, actions_active=True, desktop_active=is_desktop)
 
     def update_after_theme_change(self):
         """Called by MainWindow when theme changes."""
@@ -291,11 +291,11 @@ class TimerCard(QFrame):
         # 只有在卡片本身可用时，才根据“显示桌面”勾选情况处理图标颜色
         # 如果卡片被禁用，所有图标强制变灰
         if is_card_enabled:
-            self.update_icon_states(can_edit=not is_desktop, actions_active=True)
+            self.update_icon_states(can_edit=not is_desktop, actions_active=True, desktop_active=is_desktop)
         else:
             self.update_icon_states(can_edit=False, actions_active=False)
 
-    def update_icon_states(self, can_edit, actions_active=None):
+    def update_icon_states(self, can_edit, actions_active=None, desktop_active=False):
         """
         Update colors of all icons.
         can_edit: Controls param inputs (X, Y, Clicks, Notes) color.
@@ -310,9 +310,8 @@ class TimerCard(QFrame):
         color_muted = self.theme_manager.get_color("ICON_COLOR_MUTED")
 
         color_param = color_theme if can_edit else color_muted
-        # Desktop icon should match param state or be highlighted if checked? 
-        # Requirement: "Modified to Green". Keep it consistent with params for now.
-        color_desktop = color_theme if can_edit else color_muted
+        # Desktop icon follows its own 'desktop_active' flag, independent of can_edit
+        color_desktop = color_theme if desktop_active else color_muted
         
         # 1. Labels (Pure Pixmap - works naturally)
         self.lbl_desktop_icon.setPixmap(qta.icon('fa5s.desktop', color=color_desktop).pixmap(18, 18))

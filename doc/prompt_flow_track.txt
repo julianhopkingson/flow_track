@@ -6,6 +6,10 @@
 init: version 1.0 - automated mouse mover to prevent system sleep and screen lock
 refactor: organized project files by moving icon/language to assets folder and config to config folder for a cleaner structure
 milestone: version 2.0 - Production Release (Crystal Green UI)
+feat: version 2.1 - add Light/Dark mode switching
+feat: version 2.2 - Deliver zero-latency editing, smart text alignment, and smoother UI animations
+fix(timer): eliminate UI freeze deadlock via thread decoupling and event wait
+feat: version 2.3 - auto-send ESC to exit fullscreen before show-desktop and fix icon active state
 
 
 从上一次commit到现在为止的更改
@@ -62,6 +66,112 @@ pyinstaller main.spec --clean --noconfirm
 ■■■■■■■■■■■■■■■■■■■■
 
 ■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+
+■■■■■■■■■■■■■■■■■■■■
+把这次的修改，合并进最新的那个commit里面，并push到GitHub
+
+记住，没有我的明确指示，绝不能擅自执行任何 commit、push 等版本控制相关动作。
+
+■■■■■■■■■■■■■■■■■■■■
+feat: version 2.3 - auto-send ESC to exit fullscreen before show-desktop and fix icon active state
+
+■■■■■■■■■■■■■■■■■■■■
+请执行把版本升级为 2.3。
+另外你需要注意的是，我希望把版本升级的 MD 文档都改为中文，包括之前的那个升级计划文档也是如此。
+
+
+记住
+1 打包前一定要先执行 taskkill /F /IM flow_track.exe /T
+2 每次修改完成后重新打包，并打开app，但不要关闭它，这样我可以直接确认效果
+3 没有我的明确指示，绝不能擅自执行任何 commit、push 等版本控制相关动作。
+
+打包时参考下面的代码
+"""
+# Step 1: 关闭打开的进程
+taskkill /F /IM flow_track.exe /T
+
+# Step 2: 打包生成 EXE (清理缓存并自动确认)
+pyinstaller main.spec --clean --noconfirm
+# --clean: 打包前清理临时缓存
+# --noconfirm: 自动覆盖现有 dist 目录而不提示
+"""
+
+■■■■■■■■■■■■■■■■■■■■
+这次的版本变成version2.3，你看是不是还有什么文件要修改？
+
+■■■■■■■■■■■■■■■■■■■■
+与其说是修改 bug，最主要的是增加了个 ESC 的功能，这应该算功能性的修改。
+
+■■■■■■■■■■■■■■■■■■■■
+对比从最后commit 到现在为止的更改
+用既有的commit message的风格
+生成三个 Git 约定式提交 (Conventional Commits) 版本的单行英文消息：简洁版 (Concise)、专业版 (Professional)、易懂版 (User-friendly)。
+
+feat: version 2.3 - auto-send ESC to exit fullscreen before show-desktop and fix icon active state
+
+■■■■■■■■■■■■■■■■■■■■
+执行
+
+记住
+1 打包前一定要先执行 taskkill /F /IM flow_track.exe /T
+2 每次修改完成后重新打包，并打开app，但不要关闭它，这样我可以直接确认效果
+3 没有我的明确指示，绝不能擅自执行任何 commit、push 等版本控制相关动作。
+
+打包时参考下面的代码
+"""
+# Step 1: 关闭打开的进程
+taskkill /F /IM flow_track.exe /T
+
+# Step 2: 打包生成 EXE (清理缓存并自动确认)
+pyinstaller main.spec --clean --noconfirm
+# --clean: 打包前清理临时缓存
+# --noconfirm: 自动覆盖现有 dist 目录而不提示
+"""
+■■■■■■■■■■■■■■■■■■■■
+不应该直接用代码的，而是要有说明才对
+
+■■■■■■■■■■■■■■■■■■■■
+1 对于问题1，你是否考虑了按了开始键以后图标会灰掉的功能？
+2 有图示的格式问题
+
+■■■■■■■■■■■■■■■■■■■■
+在md文件中添加上修改前后的流程图，并标注bug原因和对策，这样对比更方便看出来如何修改的
+
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 
+现在的软件有一个图1红框中的显示桌面的这个功能。
+1 这一块应该是：选中“显示桌面”时桌面图标亮起来，没选中时桌面图标灰掉才对。
+如今的动作是相反的，你确认一下是否如此，若是，需要修改。
+
+2 这个显示桌面功能需要进行增强。
+在显示桌面之前，为了防止某些东西进入了全屏模式，应该先执行 ESC 键的功能退出全屏，然后再去显示桌面。
+
+请作为 首席架构师 (Lead Architect)，我需要你给出全面详细的设计解决方案，并列举出所有可能风险。
+内容为md格式，保存在./doc目录下
+请务必在给出最终设计方案后停止，禁止 (Prohibit) 修改任何文件，直到我输入 '执行'。
+
+
+
+■■■■■■■■■■■■■■■■■■■■
 执行
 
 记住
@@ -83,7 +193,7 @@ pyinstaller main.spec --clean --noconfirm
 ■■■■■■■■■■■■■■■■■■■■
 在md文件中添加上修改前后的流程图，并标注bug原因和对策，这样对比更方便看出来如何修改的
 
-■■■■■■■■■■■■■■■■■■■■
+■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ 保存配置的问题
 我发现一个问题
 若是我手动按了停止按钮，再关闭app时，当前设定会被保存
 但若是app在所有定时器自动停止后，自动关闭时，当前设定是有可能不会被保存的。

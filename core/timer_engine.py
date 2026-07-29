@@ -65,6 +65,13 @@ class TimerWorker(QObject):
         try:
             if show_desktop:
                 self.log.emit(self.get_msg("log_timer_show_desktop", timer_no=timer_no))
+                
+                # 退出全屏模式：先发送 ESC 键，防止前台应用处于全屏状态导致 Win+D 失效
+                self.log.emit(self.get_msg("log_timer_esc_fullscreen", timer_no=timer_no))
+                win32api.keybd_event(win32con.VK_ESCAPE, 0, 0, 0)
+                win32api.keybd_event(win32con.VK_ESCAPE, 0, win32con.KEYEVENTF_KEYUP, 0)
+                if self.cancel_event.wait(0.3): return  # 等待全屏退出动画完成
+                
                 win32api.keybd_event(win32con.VK_LWIN, 0, 0, 0)
                 win32api.keybd_event(ord('D'), 0, 0, 0)
                 
