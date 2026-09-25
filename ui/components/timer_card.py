@@ -5,6 +5,7 @@ from PySide6.QtGui import QPainter, QIcon, QColor
 from PySide6.QtCore import Qt, Signal, QEvent, QObject, QPropertyAnimation, QEasingCurve
 import qtawesome as qta
 from .notes_editor import NotesEditorDialog
+from .random_time_dialog import RandomTimeDialog
 from ui.styles.theme_config import ThemeManager
 
 class WheelIgnoreFilter(QObject):
@@ -35,12 +36,25 @@ class TimerCard(QFrame):
     move_up_requested = Signal(object)
     move_down_requested = Signal(object)
     copy_requested = Signal(object)
+    random_triggered = Signal(object)
+    random_toggled = Signal(object, bool)
 
     def __init__(self, data=None, config=None):
         super().__init__()
         self.config = config # ConfigManager instance
         self.theme_manager = ThemeManager()
         self.wheel_filter = WheelIgnoreFilter(self)
+        self.data = data or {}
+        
+        # 随机时间参数存储
+        self.random_enabled = bool(int(self.data.get("random_enabled", 0))) if self.data else False
+        self.random_start_h = int(self.data.get("random_start_h", 8)) if self.data else 8
+        self.random_start_m = int(self.data.get("random_start_m", 50)) if self.data else 50
+        self.random_end_h = int(self.data.get("random_end_h", 8)) if self.data else 8
+        self.random_end_m = int(self.data.get("random_end_m", 59)) if self.data else 59
+        self.random_min_interval = int(self.data.get("random_min_interval", 3)) if self.data else 3
+        self.random_last_time = str(self.data.get("random_last_time", "")) if self.data else ""
+
         self.init_ui()
         self.setup_effects()
         if data:
@@ -176,7 +190,29 @@ class TimerCard(QFrame):
         self.btn_copy = QPushButton(qta.icon('fa5s.copy', color='#718096'), "")
         self.btn_copy.setFixedSize(28, 28)
         self.btn_copy.setObjectName("IconButton")
+        self.btn_copy.setCursor(Qt.PointingHandCursor)
         layout.addWidget(self.btn_copy)
+
+        # 5.1 随机时间单选开关 (Radio Checkbox，位于随机按钮之前)
+        self.chk_random = QCheckBox()
+        self.chk_random.setCursor(Qt.PointingHandCursor)
+        self.chk_random.toggled.connect(self.on_random_chk_toggled)
+        layout.addWidget(self.chk_random)
+
+        # 5.2 重新随机摇点按钮 (专职 Action 按钮)
+        self.btn_random_toggle = QPushButton()
+        self.btn_random_toggle.setFixedSize(28, 28)
+        self.btn_random_toggle.setObjectName("IconButton")
+        self.btn_random_toggle.setCursor(Qt.PointingHandCursor)
+        self.btn_random_toggle.clicked.connect(self.on_random_action_clicked)
+        layout.addWidget(self.btn_random_toggle)
+
+        # 5.3 随机参数设置图标
+        self.btn_random_config = QPushButton()
+        self.btn_random_config.setFixedSize(28, 28)
+        self.btn_random_config.setObjectName("IconButton")
+        self.btn_random_config.clicked.connect(self.open_random_config_dialog)
+        layout.addWidget(self.btn_random_config)
 
         # 6. Show Desktop (Final v8.3.1: Balanced spacing & Unified CheckBox)
         self.desktop_group_widget = QWidget()
@@ -261,6 +297,9 @@ class TimerCard(QFrame):
         self.btn_down.clicked.connect(lambda: self.move_down_requested.emit(self))
         self.btn_copy.clicked.connect(lambda: self.copy_requested.emit(self))
 
+        # 初始同步图标与状态 (确保未选中时骰子与设置按钮立即置灰)
+        self.refresh_icons()
+
     def on_desktop_toggled(self, checked):
         # Fix for Qt Enum truthiness: bool(Qt.Unchecked) is often True in Python.
         # We must explicitly check for Checked state or boolean True.
@@ -278,22 +317,21 @@ class TimerCard(QFrame):
                 w.clear()
         
         # v9.5 Statification: Update Icon colors based on editability
-        # Fix (v13.0): Decouple button colors from param input state
-        self.update_icon_states(can_edit=not is_desktop, actions_active=True, desktop_active=is_desktop)
+        self.refresh_icons()
+
+    def refresh_icons(self):
+        """统一刷新整张卡片的所有图标与颜色状态，消除不同调用源的逻辑分歧。"""
+        is_card_enabled = self.btn_del.isEnabled()
+        is_desktop = self.chk_desktop.isChecked()
+        self.update_icon_states(
+            can_edit=is_card_enabled and not is_desktop,
+            actions_active=is_card_enabled,
+            desktop_active=is_desktop
+        )
 
     def update_after_theme_change(self):
         """Called by MainWindow when theme changes."""
-        # 修复 Bug：主题切换时应保持当前的锁定状态
-        # 检查删除按钮是否被禁用，以此判断当前是否处于全局“运行时”锁定状态
-        is_card_enabled = self.btn_del.isEnabled()
-        is_desktop = self.chk_desktop.isChecked()
-        
-        # 只有在卡片本身可用时，才根据“显示桌面”勾选情况处理图标颜色
-        # 如果卡片被禁用，所有图标强制变灰
-        if is_card_enabled:
-            self.update_icon_states(can_edit=not is_desktop, actions_active=True, desktop_active=is_desktop)
-        else:
-            self.update_icon_states(can_edit=False, actions_active=False)
+        self.refresh_icons()
 
     def update_icon_states(self, can_edit, actions_active=None, desktop_active=False):
         """
@@ -317,20 +355,47 @@ class TimerCard(QFrame):
         self.lbl_desktop_icon.setPixmap(qta.icon('fa5s.desktop', color=color_desktop).pixmap(18, 18))
         self.lbl_clicks_icon.setPixmap(qta.icon('fa5s.mouse', color=color_param).pixmap(16, 16))
         self.lbl_interval_icon.setPixmap(qta.icon('fa5s.clock', color=color_param).pixmap(16, 16))
-        # self.lbl_notes_icon (Removed in v14.0)
         
         # 2. Buttons (Plan A: Force Disable Stage to matching solid color)
         def set_solid_icon(btn, icon_name, active_color, locked_color, size=18):
-            # Use actions_active for Copy/Del/Add/Up/Down
             target_color = active_color if actions_active else locked_color
             pix = qta.icon(icon_name, color=target_color).pixmap(size, size)
             icon = QIcon()
-            icon.addPixmap(pix, QIcon.Normal)
-            icon.addPixmap(pix, QIcon.Disabled) # Override Qt's automatic fading
+            icon.addPixmap(pix, QIcon.Normal, QIcon.Off)
+            icon.addPixmap(pix, QIcon.Normal, QIcon.On)
+            icon.addPixmap(pix, QIcon.Disabled, QIcon.Off)
+            icon.addPixmap(pix, QIcon.Disabled, QIcon.On)
             btn.setIcon(icon)
 
         # Copy Button & Notes Edit Button (v14.0)
         set_solid_icon(self.btn_copy, 'fa5s.copy', color_theme, color_muted, 16)
+        
+        # 随机时间开关 (chk_random) 与 随机动作按钮 (Dice)、配置 (Sliders) 状态联动
+        is_random_on = self.chk_random.isChecked()
+        random_btns_active = is_random_on and actions_active
+        
+        self.btn_random_toggle.setEnabled(random_btns_active)
+        color_dice = color_theme if random_btns_active else color_muted
+        pix_dice = qta.icon('fa5s.dice', color=color_dice).pixmap(16, 16)
+        icon_dice = QIcon()
+        icon_dice.addPixmap(pix_dice, QIcon.Normal, QIcon.Off)
+        icon_dice.addPixmap(pix_dice, QIcon.Normal, QIcon.On)
+        icon_dice.addPixmap(pix_dice, QIcon.Disabled, QIcon.Off)
+        icon_dice.addPixmap(pix_dice, QIcon.Disabled, QIcon.On)
+        self.btn_random_toggle.setIcon(icon_dice)
+        self.btn_random_toggle.setCursor(Qt.PointingHandCursor if random_btns_active else Qt.ArrowCursor)
+
+        self.btn_random_config.setEnabled(random_btns_active)
+        color_config = color_theme if random_btns_active else color_muted
+        pix_config = qta.icon('fa5s.sliders-h', color=color_config).pixmap(15, 15)
+        icon_cfg = QIcon()
+        icon_cfg.addPixmap(pix_config, QIcon.Normal, QIcon.Off)
+        icon_cfg.addPixmap(pix_config, QIcon.Normal, QIcon.On)
+        icon_cfg.addPixmap(pix_config, QIcon.Disabled, QIcon.Off)
+        icon_cfg.addPixmap(pix_config, QIcon.Disabled, QIcon.On)
+        self.btn_random_config.setIcon(icon_cfg)
+        self.btn_random_config.setCursor(Qt.PointingHandCursor if random_btns_active else Qt.ArrowCursor)
+
         # Notes button should behave like a param input (can_edit), not an action button?
         # Requirement: "Clicking edit button...". It edits the input. So it follows can_edit.
         notes_color = color_theme if can_edit else color_muted
@@ -396,6 +461,62 @@ class TimerCard(QFrame):
             # C. 焦点夺回 (The Focus Grab)
             self.edit_notes.setFocus()
 
+    def on_random_chk_toggled(self, checked):
+        """单选圆圈开关切换：选中时亮起并激活随机，未选中时置灰并关闭。"""
+        self.random_enabled = checked
+        self.refresh_icons()
+        self.retranslate_ui()
+        self.random_toggled.emit(self, checked)
+
+    def on_random_action_clicked(self):
+        """点击骰子按钮：在开启状态下重新随机摇点并向下填充。"""
+        if self.chk_random.isChecked():
+            self.random_triggered.emit(self)
+
+    def open_random_config_dialog(self):
+        # 1. 屏蔽干扰 (防止弹窗关闭瞬间触发 enterEvent -> raise_() -> Layout Thrashing)
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        
+        # 2. 宿主剥离 (将 Dialog 挂载到主窗口，避免对 Card 造成内部焦点压力)
+        parent_widget = self.window() if self.window() else self
+        data = {
+            "random_start_h": self.random_start_h,
+            "random_start_m": self.random_start_m,
+            "random_end_h": self.random_end_h,
+            "random_end_m": self.random_end_m,
+            "random_min_interval": self.random_min_interval,
+            "random_last_time": self.random_last_time
+        }
+        dlg = RandomTimeDialog(data, self.config, parent_widget)
+        
+        # 3. 阻塞执行
+        result = dlg.exec()
+        
+        # 4. 恢复干扰屏蔽
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+        
+        # 5. 强权恢复状态并彻底清空所有时间框与卡片焦点
+        self.clearFocus()
+        for sp in [self.spin_h, self.spin_m, self.spin_s]:
+            sp.clearFocus()
+            le = sp.findChild(QLineEdit)
+            if le:
+                le.clearFocus()
+        if self.window():
+            self.window().setFocus()
+            
+        # 6. 处理结果：若保存且处于开启状态，立即在主线程同步触发原子随机重算，杜绝异步竞态
+        if result == QDialog.Accepted:
+            res = dlg.result_data
+            if res:
+                self.random_start_h = res["random_start_h"]
+                self.random_start_m = res["random_start_m"]
+                self.random_end_h = res["random_end_h"]
+                self.random_end_m = res["random_end_m"]
+                self.random_min_interval = res["random_min_interval"]
+                if self.chk_random.isChecked():
+                    self.random_triggered.emit(self)
+
     def get_values(self):
         time_str = f"{self.spin_h.value():02d}{self.spin_m.value():02d}{self.spin_s.value():02d}"
         return {
@@ -406,7 +527,14 @@ class TimerCard(QFrame):
             "show_desktop": self.chk_desktop.isChecked(),
             "clicks": self.edit_clicks.text(),
             "interval": self.edit_interval.text(),
-            "paste_text": self.edit_notes.text()
+            "paste_text": self.edit_notes.text(),
+            "random_enabled": self.chk_random.isChecked(),
+            "random_start_h": self.random_start_h,
+            "random_start_m": self.random_start_m,
+            "random_end_h": self.random_end_h,
+            "random_end_m": self.random_end_m,
+            "random_min_interval": self.random_min_interval,
+            "random_last_time": self.random_last_time
         }
 
     def set_values(self, data):
@@ -428,6 +556,17 @@ class TimerCard(QFrame):
         self.edit_interval.setText(str(data.get("interval", "")))
         self.edit_notes.setText(str(data.get("paste_text", "")))
         
+        self.random_enabled = bool(int(data.get("random_enabled", 0)))
+        self.random_start_h = int(data.get("random_start_h", 8))
+        self.random_start_m = int(data.get("random_start_m", 50))
+        self.random_end_h = int(data.get("random_end_h", 8))
+        self.random_end_m = int(data.get("random_end_m", 59))
+        self.random_min_interval = int(data.get("random_min_interval", 3))
+        self.random_last_time = str(data.get("random_last_time", ""))
+        self.chk_random.blockSignals(True)
+        self.chk_random.setChecked(self.random_enabled)
+        self.chk_random.blockSignals(False)
+        
         # [Fix] Force view to start (Left Align) on initial load
         self.edit_notes.setCursorPosition(0)
         
@@ -439,14 +578,37 @@ class TimerCard(QFrame):
         # Apply visual state manually (Pass pure boolean to avoid truthiness bugs)
         self.on_desktop_toggled(self.chk_desktop.isChecked())
 
+    def set_time_explicit(self, h, m, s):
+        """权威强制原子更新时间显示与内部值，双重保障界面文本与数值强同步，杜绝状态机脱节。"""
+        # 1. 彻底清除焦点并强制停止内部编辑状态
+        for sp in [self.spin_h, self.spin_m, self.spin_s]:
+            sp.clearFocus()
+            le = sp.findChild(QLineEdit)
+            if le:
+                le.clearFocus()
+                le.deselect()
+        
+        # 2. 权威写入数值并直接同步 QLineEdit 文本显示，防止滞后失焦解析旧文本
+        for sp, val in [(self.spin_h, h), (self.spin_m, m), (self.spin_s, s)]:
+            sp.blockSignals(True)
+            sp.setValue(int(val))
+            le = sp.findChild(QLineEdit)
+            if le:
+                txt = f"{int(val):02d}" if sp is self.spin_s else str(int(val))
+                le.setText(txt)
+            sp.blockSignals(False)
+            sp.update()
+            sp.repaint()
+
     def update_partial_values(self, data):
         """Update only specific fields (used for copy logic)."""
         if "time" in data:
             t_str = str(data["time"])
             if len(t_str) == 6:
-                self.spin_h.setValue(int(t_str[0:2]))
-                self.spin_m.setValue(int(t_str[2:4]))
-                self.spin_s.setValue(int(t_str[4:6]))
+                h = int(t_str[0:2])
+                m = int(t_str[2:4])
+                s = int(t_str[4:6])
+                self.set_time_explicit(h, m, s)
         if "clicks" in data and data["clicks"] is not None:
             self.edit_clicks.setText(str(data["clicks"]))
         if "interval" in data and data["interval"] is not None:
@@ -475,6 +637,9 @@ class TimerCard(QFrame):
         
         # 4. Actions
         self.btn_copy.setToolTip(self.config.get_message("tooltip_btn_copy"))
+        self.chk_random.setToolTip(self.config.get_message("tooltip_chk_random"))
+        self.btn_random_toggle.setToolTip(self.config.get_message("tooltip_btn_random_action"))
+        self.btn_random_config.setToolTip(self.config.get_message("tooltip_btn_random_config"))
         self.lbl_desktop_icon.setToolTip(self.config.get_message("tooltip_show_desktop"))
         self.chk_desktop.setToolTip(self.config.get_message("tooltip_chk_desktop"))
         
@@ -502,6 +667,9 @@ class TimerCard(QFrame):
         self.spin_m.setEnabled(enabled)
         self.spin_s.setEnabled(enabled)
         self.btn_copy.setEnabled(enabled)
+        self.chk_random.setEnabled(enabled)
+        self.btn_random_toggle.setEnabled(enabled and self.chk_random.isChecked())
+        self.btn_random_config.setEnabled(enabled and self.chk_random.isChecked())
         self.chk_desktop.setEnabled(enabled)
         self.edit_clicks.setEnabled(enabled)
         self.edit_interval.setEnabled(enabled)

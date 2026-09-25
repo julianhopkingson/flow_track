@@ -22,6 +22,8 @@ class ConfigManager:
         self.auto_close_delay_seconds = 10
         self.theme = "Light"
         self.autostart = False
+        # 默认周一到周五开启(True)，周六周日关闭(False)
+        self.autostart_days = [True, True, True, True, True, False, False]
         self.timers_data = []
 
         self.load_language()
@@ -58,7 +60,11 @@ class ConfigManager:
         if not self.app_config.has_section("General"):
             self.app_config.add_section("General")
 
-        self.selected_language = self.app_config.get("General", "language", fallback="English")
+        raw_lang = self.app_config.get("General", "language", fallback="中文")
+        if raw_lang in ("中文", "English"):
+            self.selected_language = raw_lang
+        else:
+            self.selected_language = "中文"
         self.window_x = self.app_config.getint("General", "window_x", fallback=None)
         self.window_y = self.app_config.getint("General", "window_y", fallback=None)
         self.window_width = self.app_config.getint("General", "window_width", fallback=800)
@@ -69,6 +75,17 @@ class ConfigManager:
         self.auto_close_delay_seconds = self.app_config.getint("General", "auto_close_delay_seconds", fallback=10)
         self.theme = self.app_config.get("General", "theme", fallback="Light")
         self.autostart = self.app_config.getboolean("General", "autostart", fallback=False)
+        
+        # 加载开机自启生效星期设置 (周一~周日共7项，默认 1,1,1,1,1,0,0)
+        raw_days = self.app_config.get("General", "autostart_days", fallback="1,1,1,1,1,0,0")
+        try:
+            parts = [p.strip() for p in raw_days.split(",")]
+            if len(parts) == 7:
+                self.autostart_days = [p in ("1", "true", "True") for p in parts]
+            else:
+                self.autostart_days = [True, True, True, True, True, False, False]
+        except:
+            self.autostart_days = [True, True, True, True, True, False, False]
 
         self.timers_data = []
         # Clear existing Timer_ sections to rebuild cleanly if needed, 
@@ -83,7 +100,14 @@ class ConfigManager:
                     "show_desktop": self.app_config.getboolean(section, "show_desktop", fallback=False),
                     "clicks": self.app_config.get(section, "clicks", fallback="1"),
                     "interval": self.app_config.get(section, "interval", fallback="1"),
-                    "paste_text": self.app_config.get(section, "paste_text", fallback="")
+                    "paste_text": self.app_config.get(section, "paste_text", fallback=""),
+                    "random_enabled": self.app_config.getboolean(section, "random_enabled", fallback=False),
+                    "random_start_h": self.app_config.getint(section, "random_start_h", fallback=8),
+                    "random_start_m": self.app_config.getint(section, "random_start_m", fallback=50),
+                    "random_end_h": self.app_config.getint(section, "random_end_h", fallback=8),
+                    "random_end_m": self.app_config.getint(section, "random_end_m", fallback=59),
+                    "random_min_interval": self.app_config.getint(section, "random_min_interval", fallback=3),
+                    "random_last_time": self.app_config.get(section, "random_last_time", fallback="")
                 }
                 self.timers_data.append(data)
 
@@ -95,6 +119,8 @@ class ConfigManager:
         self.app_config.set("General", "auto_close_delay_seconds", str(self.auto_close_delay_seconds))
         self.app_config.set("General", "theme", self.theme)
         self.app_config.set("General", "autostart", str(self.autostart).lower())
+        days_str = ",".join(["1" if d else "0" for d in self.autostart_days])
+        self.app_config.set("General", "autostart_days", days_str)
         self.app_config.set("General", "timer_canvas_height", str(self.timer_canvas_height))
         
         if window_geo:
@@ -120,6 +146,13 @@ class ConfigManager:
                 self.app_config.set(section, "clicks", str(timer.get('clicks', '1')))
                 self.app_config.set(section, "interval", str(timer.get('interval', '1')))
                 self.app_config.set(section, "paste_text", timer.get('paste_text', ''))
+                self.app_config.set(section, "random_enabled", "1" if timer.get('random_enabled') else "0")
+                self.app_config.set(section, "random_start_h", str(timer.get('random_start_h', 8)))
+                self.app_config.set(section, "random_start_m", str(timer.get('random_start_m', 50)))
+                self.app_config.set(section, "random_end_h", str(timer.get('random_end_h', 8)))
+                self.app_config.set(section, "random_end_m", str(timer.get('random_end_m', 59)))
+                self.app_config.set(section, "random_min_interval", str(timer.get('random_min_interval', 3)))
+                self.app_config.set(section, "random_last_time", str(timer.get('random_last_time', '')))
 
         config_dir = os.path.dirname(self.CONFIG_FILE)
         if config_dir and not os.path.exists(config_dir):

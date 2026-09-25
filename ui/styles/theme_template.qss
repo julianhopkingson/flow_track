@@ -1,17 +1,17 @@
-/* Main Window Background - "Heng Dong" Cool Gray-Blue */
-QMainWindow {
+/* Main Window & Dialog Background */
+QMainWindow, QDialog#NotesEditorDialog, QDialog#RandomTimeDialog, QDialog#AutoStartScheduleDialog {
     background: [[BG_WINDOW]];
 }
 
 /* Main Cards - "Heng Dong" Raised/Outset Look (v5.15) */
-QWidget#HeaderCard, QWidget#TimerWorkspaceCard, QWidget#LogCard {
+QWidget#HeaderCard, QWidget#TimerWorkspaceCard, QWidget#LogCard, QFrame#RandomTimeCard, QFrame#NotesEditorCard, QFrame#AutoStartScheduleCard {
     background-color: [[BG_CARD]];
     /* Simulate Raised Effect: Lighter top, Darker bottom */
     border-top: 2px solid [[BORDER_LIGHT]];    /* Top highlight */
     border-bottom: 2px solid [[BORDER_SHADOW]]; /* Bottom shadow */
     border-left: 1px solid [[INPUT_BORDER]];
     border-right: 1px solid [[INPUT_BORDER]];
-    border-radius: 20px;
+    border-radius: 16px;
 }
 
 /* Ensure Inner Workspace Containers are Transparent */
@@ -63,6 +63,16 @@ QPushButton#IconButton:hover {
     background: [[BG_CARD]];
     border: 1px solid [[BORDER_SHADOW]];
     color: [[TEXT_PRIMARY]];
+}
+
+QPushButton#IconButton:checked {
+    background: rgba(38, 208, 124, 0.12);
+    border: 1.5px solid [[ACCENT_GREEN]];
+}
+
+QPushButton#IconButton:checked:hover {
+    background: rgba(38, 208, 124, 0.20);
+    border: 1.5px solid [[ACCENT_GREEN]];
 }
 
 /* Fix for Editable Combo Box (Used for Centering) - Remove inner LineEdit border */

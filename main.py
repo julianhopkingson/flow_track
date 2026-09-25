@@ -14,6 +14,13 @@ _app_mutex = None
 def main():
     global _app_mutex
     
+    # 0. 锁定工作目录至可执行文件或脚本物理所在目录（根治 Windows 注册表自启动默认 CWD 漂移至 System32 问题）
+    if getattr(sys, 'frozen', False):
+        app_dir = os.path.dirname(os.path.abspath(sys.executable))
+    else:
+        app_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(app_dir)
+    
     # 1. 关键步骤：在加载任何UI前创建命名互斥锁
     # GUID 保证全局唯一性: {9D2A3B4C-FlowTrack-Mutex-v2.3}
     mutex_name = "Local\\FlowTrack_Instance_Mutex_9D2A3B4C-v2.3"

@@ -2,7 +2,7 @@ import os
 import datetime
 from PySide6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QPushButton, QLabel, QComboBox, QScrollArea, 
-                             QTextEdit, QFrame, QFileDialog, QMessageBox, QStyledItemDelegate)
+                             QTextEdit, QFrame, QFileDialog, QMessageBox, QStyledItemDelegate, QDialog)
 from PySide6.QtCore import Qt, QTimer, QSize, QObject, QEvent
 from PySide6.QtGui import QIcon, QTextCursor
 import qtawesome as qta
@@ -12,6 +12,7 @@ from core.config_manager import ConfigManager
 from core.autostart_manager import AutoStartManager
 from core.timer_engine import TimerEngine
 from ui.components.timer_card import TimerCard
+from ui.components.autostart_schedule_dialog import AutoStartScheduleDialog
 from ui.styles.theme_config import ThemeManager
 from ui.widgets import SunMoonToggle, AutoStartIconButton
 
@@ -81,22 +82,39 @@ class MainWindow(QMainWindow):
         cfg_enabled = self.config.autostart
         if reg_enabled:
             AutoStartManager.sync_path_if_moved()
+        elif cfg_enabled:
+            # 若配置开启但注册表缺失（如迁移到新目录），主动自愈写入注册表
+            AutoStartManager.set_autostart(True)
+            reg_enabled = AutoStartManager.is_autostart_enabled()
             
         initial_autostart = reg_enabled or cfg_enabled
-        if reg_enabled != cfg_enabled:
-            self.config.autostart = reg_enabled
-            try:
-                self.config.save_config()
-            except:
-                pass
+        self.config.autostart = initial_autostart
+        try:
+            self.config.save_config()
+        except:
+            pass
+
         self.autostart_btn.set_checked_silent(initial_autostart)
         self.update_autostart_tooltips()
 
-        # 一旦开启自启，或检测到 --autostart 命令行参数，均免点击自动运行
+        # 开机自启免点击运行逻辑（结合星期排程过滤）
         import sys
         if self.autostart_btn.isChecked() or "--autostart" in sys.argv:
-            self.log(self.config.get_message("log_autostart_triggered"))
-            QTimer.singleShot(300, self.start_timers)
+            today_idx = datetime.datetime.now().weekday()
+            days_list = self.config.autostart_days
+            is_scheduled = days_list[today_idx] if len(days_list) > today_idx else True
+            
+            weekday_keys = [
+                "weekday_mon", "weekday_tue", "weekday_wed",
+                "weekday_thu", "weekday_fri", "weekday_sat", "weekday_sun"
+            ]
+            today_name = self.config.get_message(weekday_keys[today_idx])
+            
+            if is_scheduled:
+                self.log(self.config.get_message("log_autostart_triggered"))
+                QTimer.singleShot(300, self.start_timers)
+            else:
+                self.log(self.config.get_message("log_autostart_skipped_today", weekday=today_name))
 
     def init_ui(self):
         central_widget = QWidget()
@@ -195,24 +213,33 @@ class MainWindow(QMainWindow):
         self.btn_stop.hide() 
         self.btn_stop.clicked.connect(self.stop_timers)
 
-        # Autostart Toggle Switch
+        # Autostart Toggle Switch & Settings Button (紧凑微卡片组，内部间距 6px)
         self.autostart_btn = AutoStartIconButton(theme_name=self.config.theme)
         self.autostart_btn.clicked.connect(self.on_autostart_clicked)
+
+        self.btn_autostart_settings = QPushButton()
+        self.btn_autostart_settings.setFixedSize(28, 28)
+        self.btn_autostart_settings.setObjectName("IconButton")
+        self.btn_autostart_settings.setCursor(Qt.PointingHandCursor)
+        self.btn_autostart_settings.clicked.connect(self.open_autostart_schedule_dialog)
+
+        autostart_group = QHBoxLayout()
+        autostart_group.setSpacing(6)
+        autostart_group.addWidget(self.autostart_btn)
+        autostart_group.addWidget(self.btn_autostart_settings)
 
         # Theme Switcher (v3.0 Custom Toggle)
         self.btn_theme = SunMoonToggle(theme_name=self.config.theme)
         self.btn_theme.stateChanged.connect(self.toggle_theme)
         self.update_theme_icon()
 
-        # Add to Coord Group (Position requirement)
-        coord_group.addWidget(self.autostart_btn)
-        coord_group.addWidget(self.btn_theme)
-
-        # 按组添加至主布局
+        # 按组添加至主布局 (统一享受 header_layout 20px 黄金留白)
         header_layout.addLayout(lang_group)
         header_layout.addWidget(self.btn_load)
         header_layout.addLayout(copy_group)
-        header_layout.addLayout(coord_group) # Moved to left side
+        header_layout.addLayout(coord_group)
+        header_layout.addLayout(autostart_group)
+        header_layout.addWidget(self.btn_theme)
         header_layout.addStretch()
         header_layout.addWidget(self.btn_start)
         header_layout.addWidget(self.btn_stop)
@@ -303,6 +330,11 @@ class MainWindow(QMainWindow):
         
         for data in timers_data:
             self.add_timer_card(data)
+            
+        # 初始加载时，对所有开启随机时间的行自动执行一次随机重算并向下级联
+        for card in self.timer_cards:
+            if card.chk_random.isChecked():
+                self.apply_random_time_to_card(card)
 
     def add_timer_card(self, data=None, index=None):
         card = TimerCard(data=data, config=self.config)
@@ -311,6 +343,8 @@ class MainWindow(QMainWindow):
         card.move_up_requested.connect(self.move_up)
         card.move_down_requested.connect(self.move_down)
         card.copy_requested.connect(self.copy_settings)
+        card.random_triggered.connect(self.apply_random_time_to_card)
+        card.random_toggled.connect(self.on_card_random_toggled)
         
         if index is not None:
             self.timer_list_layout.insertWidget(index, card)
@@ -375,6 +409,88 @@ class MainWindow(QMainWindow):
                     target_card.update_partial_values(partial_data)
                 except:
                     pass
+
+    def on_card_random_toggled(self, card, is_enabled):
+        """处理卡片随机时间开关的切换动作，联动随机计算与日志记录。"""
+        timer_no = self.timer_cards.index(card) + 1
+        if is_enabled:
+            # 开启时：立即执行随机抽取与级联覆盖
+            self.apply_random_time_to_card(card)
+        else:
+            # 取消时：输出关闭日志
+            self.log(self.config.get_message("log_random_time_disabled", timer_no=timer_no))
+
+    def apply_random_time_to_card(self, card):
+        """对指定卡片的时间（时和分）在设定范围内进行随机抽取，并自动向下级联填充 copy_range 行。"""
+        # 防重入保护锁，杜绝极速连击可能导致的竞态与时序脱节
+        if getattr(self, '_is_applying_random', False):
+            return
+        self._is_applying_random = True
+        try:
+            import random
+            start_total = card.random_start_h * 60 + card.random_start_m
+            end_total = card.random_end_h * 60 + card.random_end_m
+            if start_total > end_total:
+                start_total, end_total = end_total, start_total
+                
+            all_candidates = list(range(start_total, end_total + 1))
+            
+            last_total = None
+            if card.random_last_time and len(str(card.random_last_time)) >= 4:
+                try:
+                    lh = int(str(card.random_last_time)[0:2])
+                    lm = int(str(card.random_last_time)[2:4])
+                    last_total = lh * 60 + lm
+                except:
+                    pass
+                    
+            if last_total is not None and card.random_min_interval > 0:
+                valid_candidates = [m for m in all_candidates if abs(m - last_total) >= card.random_min_interval]
+                if valid_candidates:
+                    chosen_minute = random.choice(valid_candidates)
+                else:
+                    # 区间过窄时，自动选取距离上次时间差值最大的一端
+                    chosen_minute = max(all_candidates, key=lambda m: abs(m - last_total))
+            else:
+                chosen_minute = random.choice(all_candidates)
+                
+            new_h = chosen_minute // 60
+            new_m = chosen_minute % 60
+            new_time_str = f"{new_h:02d}{new_m:02d}00"
+            
+            # 1. 立即清除可能遗留的控件焦点，避免 Windows 滞后失焦消息覆盖
+            self.setFocus()
+            card.clearFocus()
+            
+            # 2. 权威强制更新基准行时间，并将秒归零（完全同步）
+            card.set_time_explicit(new_h, new_m, 0)
+            card.random_last_time = new_time_str
+            
+            # 3. 严格基于同源 (new_h, new_m) 向下原子级联填充 copy_range 行，基准行与级联行绝对一致
+            idx = self.timer_cards.index(card)
+            copy_range = self.config.copy_range
+            for i in range(1, copy_range + 1):
+                target_idx = idx + i
+                if target_idx < len(self.timer_cards):
+                    target_card = self.timer_cards[target_idx]
+                    new_s = i % 60
+                    new_target_time = f"{new_h:02d}{new_m:02d}{new_s:02d}"
+                    partial_data = {
+                        "time": new_target_time,
+                        "clicks": card.edit_clicks.text() if not card.chk_desktop.isChecked() else None,
+                        "interval": card.edit_interval.text() if not card.chk_desktop.isChecked() else None
+                    }
+                    target_card.update_partial_values(partial_data)
+            
+            # 4. 输出日志
+            timer_no = self.timer_cards.index(card) + 1
+            time_formatted = f"{new_h:02d}:{new_m:02d}:00"
+            self.log(self.config.get_message("log_random_time_applied", 
+                                             timer_no=timer_no, 
+                                             time_str=time_formatted, 
+                                             count=self.config.copy_range))
+        finally:
+            self._is_applying_random = False
 
     def update_coords(self):
         try:
@@ -539,13 +655,35 @@ class MainWindow(QMainWindow):
         self.lbl_lang_sel.setPixmap(qta.icon('fa5s.globe', color=color_lang).pixmap(22, 22))
         self.lbl_copy_range_sel.setPixmap(qta.icon('fa5s.copy', color=color_copy).pixmap(18, 18))
         
-        # 2. Folder Button (Plan A: Force Disable Stage transparency override)
+        # 2. Folder Button & Autostart Settings Button (Plan A: Force Disable Stage transparency override)
         pix = qta.icon('fa5s.folder-open', color=color_folder).pixmap(20, 20)
         icon = QIcon()
         icon.addPixmap(pix, QIcon.Normal)
         icon.addPixmap(pix, QIcon.Disabled)
         self.btn_load.setIcon(icon)
         self.btn_load.setIconSize(QSize(20, 20))
+
+        if hasattr(self, 'btn_autostart_settings'):
+            self.update_autostart_settings_state()
+
+    def update_autostart_settings_state(self):
+        """根据开机自启开关状态，联动更新设置按钮的可用性与图标颜色 (未开启时置灰禁用)"""
+        if not hasattr(self, 'btn_autostart_settings') or not hasattr(self, 'autostart_btn'):
+            return
+        is_autostart_on = self.autostart_btn.isChecked()
+        self.btn_autostart_settings.setEnabled(is_autostart_on)
+        self.btn_autostart_settings.setCursor(Qt.PointingHandCursor if is_autostart_on else Qt.ArrowCursor)
+        
+        color_active = self.theme_manager.get_color("ICON_COLOR")
+        color_muted = self.theme_manager.get_color("ICON_COLOR_MUTED")
+        target_color = color_active if is_autostart_on else color_muted
+        
+        pix_cfg = qta.icon('fa5s.sliders-h', color=target_color).pixmap(16, 16)
+        icon_cfg = QIcon()
+        icon_cfg.addPixmap(pix_cfg, QIcon.Normal)
+        icon_cfg.addPixmap(pix_cfg, QIcon.Disabled)
+        self.btn_autostart_settings.setIcon(icon_cfg)
+        self.btn_autostart_settings.setIconSize(QSize(16, 16))
 
     def load_config_dialog(self):
         file_path, _ = QFileDialog.getOpenFileName(self, self.config.get_message("tooltip_btn_load_config"), "", "INI Files (*.ini)")
@@ -572,11 +710,23 @@ class MainWindow(QMainWindow):
                 self.log(self.config.get_message("error_config_load_generic", error=str(e)))
 
     def update_autostart_tooltips(self):
-        if not hasattr(self, 'autostart_btn'):
-            return
-        is_on = self.autostart_btn.isChecked()
-        key = "tooltip_autostart_on" if is_on else "tooltip_autostart_off"
-        self.autostart_btn.setToolTip(self.config.get_message(key))
+        if hasattr(self, 'autostart_btn'):
+            is_on = self.autostart_btn.isChecked()
+            key = "tooltip_autostart_on" if is_on else "tooltip_autostart_off"
+            self.autostart_btn.setToolTip(self.config.get_message(key))
+        if hasattr(self, 'btn_autostart_settings'):
+            self.btn_autostart_settings.setToolTip(self.config.get_message("tooltip_autostart_settings"))
+        self.update_autostart_settings_state()
+
+    def open_autostart_schedule_dialog(self):
+        """弹出开机自启生效星期排程设置弹窗"""
+        dialog = AutoStartScheduleDialog(self.config.autostart_days, self.config, self)
+        if dialog.exec() == QDialog.Accepted:
+            self.config.autostart_days = dialog.get_schedule()
+            try:
+                self.config.save_config()
+            except Exception as e:
+                print(f"Error saving autostart schedule: {e}")
 
     def on_autostart_clicked(self):
         enabled = self.autostart_btn.isChecked()

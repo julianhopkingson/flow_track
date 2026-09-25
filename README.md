@@ -4,21 +4,18 @@
 
 Flow Track is a lightweight, high-precision desktop automation utility. It empowers users to preset a sequence of click and text-pasting tasks at exact timestamps, freeing your hands from repetitive manual operations.
 
-![Software Preview](assets/v2.4_ui_preview.png)
+![Software Preview](assets/ui_preview.png)
 
-- **Premium UI**: "Flow Track" Cyber-Green geek design with Glassmorphism, tailored for a fluid and high-tech user experience.
-- **Autostart & Auto-run**: Zero-UAC Windows startup integration via `HKCU` registry with self-healing path correction. Features glowing vector power button and hands-free automatic task triggering upon app startup.
-- **Full Tooltip Support**: Every icon and input field is equipped with bilingual hover-over explanations, significantly lowering the learning curve.
-- **Precise Scheduling**: Uses high-fidelity 3-spinbox time inputs (HH:MM:SS) for intuitive and accurate scheduling.
-- **Text Pasting**: Supports pasting multi-line text with an independent **Zero-Latency (V6)** pop-up editor, featuring smart **Auto-Home Alignment** for long text.
-- **Integrated Logging**: Real-time activity logs presented in a cohesive glassmorphic card for instant feedback.
-- **Auto-Countdown Exit**: Optional feature. Once all scheduled tasks complete, the app enters a 10s countdown and closes securely.
-- **Window Memory**: Automatically remembers and restores window position and size from the previous session.
-- **Bilingual Support**: Instant switching between **English** and **Chinese** with high-fidelity translations.
-- **Portable & Persistent**: Single EXE distribution that saves user-specific settings to `config/config.ini`.
-- **Light/Dark Mode**: Seamlessly switch between themes with **smooth Sun/Moon animations**, automatically saving your preference.
-- **High Stability**: Robust ARGB rendering and event-interception logic prevent glitches and accidental input changes.
-- **Single Instance Lock**: Built on Windows Kernel Mutex to strictly prevent duplicate instances or accidental double-launches.
+- **Premium UI**: "Flow Track" Cyber-Green design with Glassmorphism, tailored for a fluid and state-of-the-art interactive experience.
+- **Precise Scheduling**: High-fidelity 3-spinbox time inputs (HH:MM:SS) ensure tasks run with microsecond-level precision.
+- **Random Time Jitter & Cascade**: Flexible random time windows with deduplication intervals, automatic downward sequential cascade, and one-click re-rolls.
+- **Autostart & Weekly Schedule**: Registry-based autostart with self-healing paths, 7-day independent weekly schedule toggles, weekday auto-execution, and weekend silence.
+- **Multi-Action Task Orchestration**: Screen coordinate targeting, configurable click intervals, quick desktop-minimize mode, and effortless row duplication/reordering.
+- **Text Pasting & Zero-Latency Editor**: Fast multi-line text pasting equipped with an independent zero-latency pop-up editor and Auto-Home alignment.
+- **Light / Dark Mode**: Smooth Sun/Moon animated theme transitions, supporting vibrant light mode and sleek dark mode with persistent user preferences.
+- **Integrated Logging & Comprehensive Tooltips**: Real-time activity logs in glassmorphic cards, with bilingual hover-over tooltips for every control across the interface.
+- **Security & Auto-Shutdown**: Optional 10s countdown safe termination upon completing all tasks, backed by Windows Kernel Mutex to prevent duplicate instances.
+- **Bilingual & Portable Persistence**: Instant English/Chinese switching and single-file portable EXE distribution with persistent settings in `config/config.ini`.
 
 ## 🏗️ Architecture
 
@@ -69,11 +66,35 @@ pyinstaller main.spec --clean --noconfirm
 
 - **Language**: Current UI language (中文/English).
 - **Theme**: UI theme preference (Light/Dark).
-- **Autostart**: Set to `true` to enable automatic launch and auto-execution on Windows boot.
+- **Autostart**: Set to `true` to enable automatic launch on Windows boot.
+- **Autostart Days**: 7-item boolean list (`autostart_days = 1,1,1,1,1,0,0`) defining which days of the week autostart execution takes place (Monday to Sunday).
 - **Copy Range**: Number of tasks to sync downwards when copying.
 - **Auto Close**: Set to `True` to enable auto-closing the app when all tasks are done.
 - **Auto Close Delay**: Countdown duration (seconds) before auto-closing.
-- **Timer Sections**: Specific settings for each task row (coordinates, clicks, paste text, etc.).
+- **Timer Sections**: Specific settings for each task row:
+  - `enabled`, `x`, `y`, `time`, `clicks`, `interval`, `paste_text`: Basic task execution parameters;
+  - `random_enabled`: Whether random time jitter is enabled for this row;
+  - `random_start_h/m`, `random_end_h/m`: Lower and upper bounds of the random time window;
+  - `random_min_interval`: Minimum interval (minutes) required between consecutive runs;
+  - `random_last_time`: Snapshot of the most recently generated absolute timestamp.
 
 ## 📄 License
 This project is open-sourced under the [MIT](LICENSE) License - please refer to the LICENSE file for details.
+
+```markdown
+📌 Flow Track Feature Overview
+├── 🎛️ Automation Control Core
+│   ├── ⏰ Precise Scheduling (3-spinbox high-fidelity time input, microsecond trigger)
+│   ├── 🎲 Random Time & Cascading (Range jitter, deduplication interval, downward auto-fill)
+│   ├── 📋 Smart Paste Editor (Zero-latency multi-line editor with Auto-Home alignment)
+│   └── 🖥️ Desktop Mode & Multi-point Action (Quick minimize to desktop, free coordinates & clicks)
+├── 🎨 High-End Interactive UI
+│   ├── 🟢 Cyber-Geek Aesthetics (Emerald glow accent with 3D raised touch)
+│   ├── 📅 Weekly Autostart Schedule (7-day toggle capsules, smart weekday filter & weekend silence)
+│   ├── 🌗 Seamless Dark/Light Switching (Sun/Moon vector transition with persistent memory)
+│   └── 🌐 Instant Bilingual Support (Comprehensive tooltips and millisecond hot-reload)
+└── 🛡️ Enterprise Robustness
+    ├── ⚡ Zero-UAC Windows Autostart (Registry managed, self-healing single-EXE path)
+    ├── 🔒 Single-Instance Mutex (Windows Kernel Mutex prevents duplicate launches)
+    └── ⏳ Auto Countdown Shutdown (Optional graceful self-closing without manual intervention)
+```

@@ -65,6 +65,16 @@ QPushButton#IconButton:hover {
     color: #1A202C;
 }
 
+QPushButton#IconButton:checked {
+    background: rgba(38, 208, 124, 0.12);
+    border: 1.5px solid #26D07C;
+}
+
+QPushButton#IconButton:checked:hover {
+    background: rgba(38, 208, 124, 0.20);
+    border: 1.5px solid #26D07C;
+}
+
 /* Fix for Editable Combo Box (Used for Centering) - Remove inner LineEdit border */
 QComboBox QLineEdit {
     border: none;
