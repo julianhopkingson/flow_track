@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QCheckBox
+from PySide6.QtWidgets import QCheckBox, QGraphicsDropShadowEffect
 from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve, Property, QRectF, QSize, QPointF
 from PySide6.QtGui import QPainter, QColor, QPen, QBrush
 import qtawesome as qta
@@ -176,3 +176,92 @@ class SunMoonToggle(QCheckBox):
             self._draw_sun(p, thumb_rect.center(), 5, QColor("#FFFFFF"))
         
         p.end()
+
+
+class AutoStartIconButton(QCheckBox):
+    """
+    自发光极客图标按钮 (Glowing Icon Button)
+    尺寸 36x36，正圆形微卡片。
+    点亮态：实心翡翠绿底色（#2ECC71）搭配居中纯白电源微标（#FFFFFF），四周带有柔和的环境发光光晕（QGraphicsDropShadowEffect）。
+    熄灭态：高透毛玻璃半透明底色，搭配暗灰色细边框与次级灰电源微标。
+    """
+    def __init__(self, theme_name="Light", parent=None):
+        super().__init__(parent)
+        self.setCursor(Qt.PointingHandCursor)
+        self.setFixedSize(36, 36)
+        self.theme_name = theme_name
+        
+        self.shadow = QGraphicsDropShadowEffect(self)
+        self.setGraphicsEffect(self.shadow)
+        self._update_shadow()
+
+    def _update_shadow(self):
+        if self.isChecked():
+            self.shadow.setColor(QColor(46, 204, 113, 180))
+            self.shadow.setBlurRadius(16)
+            self.shadow.setOffset(0, 0)
+        else:
+            if self.theme_name == "Light":
+                self.shadow.setColor(QColor(0, 0, 0, 18))
+            else:
+                self.shadow.setColor(QColor(0, 0, 0, 70))
+            self.shadow.setBlurRadius(8)
+            self.shadow.setOffset(0, 2)
+
+    def set_theme(self, theme_name):
+        self.theme_name = theme_name
+        self._update_shadow()
+        self.update()
+
+    def set_checked_silent(self, checked):
+        self.blockSignals(True)
+        self.setChecked(checked)
+        self.blockSignals(False)
+        self._update_shadow()
+        self.update()
+
+    def checkStateSet(self):
+        super().checkStateSet()
+        self._update_shadow()
+        self.update()
+
+    def hitButton(self, pos):
+        return self.rect().contains(pos)
+
+    def paintEvent(self, event):
+        p = QPainter(self)
+        p.setRenderHint(QPainter.Antialiasing)
+        
+        w, h = self.width(), self.height()
+        draw_rect = QRectF(2.0, 2.0, w - 4.0, h - 4.0)
+        
+        is_lit = self.isChecked()
+        is_dark = self.theme_name == "Dark"
+        
+        # 1. 背景材质与正圆
+        if is_lit:
+            # 选中时：实心翡翠绿底色
+            bg_color = QColor("#2ECC71")
+            p.setBrush(QBrush(bg_color))
+            p.setPen(Qt.NoPen)
+        else:
+            # 熄灭态：磨砂半透明底色与细边框
+            bg_color = QColor(255, 255, 255, 22) if is_dark else QColor(255, 255, 255, 190)
+            border_color = QColor(255, 255, 255, 35) if is_dark else QColor(0, 0, 0, 25)
+            p.setBrush(QBrush(bg_color))
+            p.setPen(QPen(border_color, 1.0))
+            
+        p.drawEllipse(draw_rect)
+        
+        # 2. 绘制中心微标（选中时为纯白，未选中时为暗灰）
+        center = QPointF(w / 2, h / 2)
+        r = 6.8
+        icon_color = Qt.white if is_lit else (QColor("#718096") if is_dark else QColor("#A0AEC0"))
+        icon_pen = QPen(icon_color, 2.0 if is_lit else 1.6, Qt.SolidLine, Qt.RoundCap)
+        p.setPen(icon_pen)
+        p.setBrush(Qt.NoBrush)
+        
+        arc_rect = QRectF(center.x() - r, center.y() - r, r * 2, r * 2)
+        p.drawArc(arc_rect, 120 * 16, 300 * 16)
+        p.drawLine(QPointF(center.x(), center.y() - r - 2.5), QPointF(center.x(), center.y() - 1.0))
+

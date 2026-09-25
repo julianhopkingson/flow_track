@@ -4,9 +4,10 @@
 
 Flow Track is a lightweight, high-precision desktop automation utility. It empowers users to preset a sequence of click and text-pasting tasks at exact timestamps, freeing your hands from repetitive manual operations.
 
-![Software Preview](assets/v2.2_ui_preview.png)
+![Software Preview](assets/v2.4_ui_preview.png)
 
 - **Premium UI**: "Flow Track" Cyber-Green geek design with Glassmorphism, tailored for a fluid and high-tech user experience.
+- **Autostart & Auto-run**: Zero-UAC Windows startup integration via `HKCU` registry with self-healing path correction. Features glowing vector power button and hands-free automatic task triggering upon app startup.
 - **Full Tooltip Support**: Every icon and input field is equipped with bilingual hover-over explanations, significantly lowering the learning curve.
 - **Precise Scheduling**: Uses high-fidelity 3-spinbox time inputs (HH:MM:SS) for intuitive and accurate scheduling.
 - **Text Pasting**: Supports pasting multi-line text with an independent **Zero-Latency (V6)** pop-up editor, featuring smart **Auto-Home Alignment** for long text.
@@ -23,7 +24,7 @@ Flow Track is a lightweight, high-precision desktop automation utility. It empow
 
 Flow Track follows a modular **separation of concerns** design to ensure maintainability and high performance:
 
-- **Core Engine**: Encapsulates automation logic, configuration management, and localized i18n support.
+- **Core Engine**: Encapsulates automation logic, Windows startup registry management (AutoStartMgr), configuration management, and localized i18n support.
 - **Worker Threading**: Utilizes `QThread` to handle background mouse monitoring and movement, ensuring a lag-free UI experience.
 - **Glassmorphic UI Layer**: A modern interface built with PySide6, featuring custom styled widgets with real-time ARGB rendering and shadow effects.
 
@@ -31,9 +32,9 @@ Flow Track follows a modular **separation of concerns** design to ensure maintai
 
 ```text
 flow_track/
-├── assets/          # Static resources (Icons, localized strings)
+├── assets/          # Static resources (Icons, localized strings, previews)
 ├── config/          # User specific configurations (Auto-generated)
-├── core/            # Backend logic (Automation, ConfigMgr, I18n)
+├── core/            # Backend logic (Automation, AutoStartMgr, ConfigMgr, I18n)
 ├── ui/              # Frontend components (Themes, Crystal Widgets, Main Window)
 ├── main.py          # Application entry point
 └── main.spec        # PyInstaller build specification
@@ -68,6 +69,7 @@ pyinstaller main.spec --clean --noconfirm
 
 - **Language**: Current UI language (中文/English).
 - **Theme**: UI theme preference (Light/Dark).
+- **Autostart**: Set to `true` to enable automatic launch and auto-execution on Windows boot.
 - **Copy Range**: Number of tasks to sync downwards when copying.
 - **Auto Close**: Set to `True` to enable auto-closing the app when all tasks are done.
 - **Auto Close Delay**: Countdown duration (seconds) before auto-closing.

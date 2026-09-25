@@ -9,7 +9,7 @@ build/
 dist/
 
 # # Documentation
-# doc/
+doc/
 
 # Agent
 .agent/

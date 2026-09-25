@@ -9,10 +9,11 @@ import qtawesome as qta
 import win32api
 
 from core.config_manager import ConfigManager
+from core.autostart_manager import AutoStartManager
 from core.timer_engine import TimerEngine
 from ui.components.timer_card import TimerCard
 from ui.styles.theme_config import ThemeManager
-from ui.widgets import SunMoonToggle
+from ui.widgets import SunMoonToggle, AutoStartIconButton
 
 class CenterAlignmentDelegate(QStyledItemDelegate):
     """Delegate to center align text in QComboBox (v11.0)."""
@@ -74,6 +75,28 @@ class MainWindow(QMainWindow):
         # Engine Signals
         self.engine.log_signal.connect(self.log)
         self.engine.task_finished.connect(self.on_task_finished)
+
+        # 恢复自启动状态并校验/自愈路径
+        reg_enabled = AutoStartManager.is_autostart_enabled()
+        cfg_enabled = self.config.autostart
+        if reg_enabled:
+            AutoStartManager.sync_path_if_moved()
+            
+        initial_autostart = reg_enabled or cfg_enabled
+        if reg_enabled != cfg_enabled:
+            self.config.autostart = reg_enabled
+            try:
+                self.config.save_config()
+            except:
+                pass
+        self.autostart_btn.set_checked_silent(initial_autostart)
+        self.update_autostart_tooltips()
+
+        # 一旦开启自启，或检测到 --autostart 命令行参数，均免点击自动运行
+        import sys
+        if self.autostart_btn.isChecked() or "--autostart" in sys.argv:
+            self.log(self.config.get_message("log_autostart_triggered"))
+            QTimer.singleShot(300, self.start_timers)
 
     def init_ui(self):
         central_widget = QWidget()
@@ -172,12 +195,17 @@ class MainWindow(QMainWindow):
         self.btn_stop.hide() 
         self.btn_stop.clicked.connect(self.stop_timers)
 
+        # Autostart Toggle Switch
+        self.autostart_btn = AutoStartIconButton(theme_name=self.config.theme)
+        self.autostart_btn.clicked.connect(self.on_autostart_clicked)
+
         # Theme Switcher (v3.0 Custom Toggle)
         self.btn_theme = SunMoonToggle(theme_name=self.config.theme)
         self.btn_theme.stateChanged.connect(self.toggle_theme)
         self.update_theme_icon()
 
         # Add to Coord Group (Position requirement)
+        coord_group.addWidget(self.autostart_btn)
         coord_group.addWidget(self.btn_theme)
 
         # 按组添加至主布局
@@ -250,6 +278,8 @@ class MainWindow(QMainWindow):
         # Update dynamic icons
         self.update_header_icons(self.btn_start.isEnabled())
         self.update_theme_icon()
+        if hasattr(self, 'autostart_btn'):
+            self.autostart_btn.set_theme(self.theme_manager.current_theme)
         for card in self.timer_cards:
             card.update_after_theme_change()
 
@@ -490,6 +520,7 @@ class MainWindow(QMainWindow):
         for card in self.timer_cards:
             card.retranslate_ui()
             
+        self.update_autostart_tooltips()
         self.log(self.config.get_message("log_lang_changed", lang=lang))
 
     def on_copy_range_changed(self, val):
@@ -540,6 +571,31 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 self.log(self.config.get_message("error_config_load_generic", error=str(e)))
 
+    def update_autostart_tooltips(self):
+        if not hasattr(self, 'autostart_btn'):
+            return
+        is_on = self.autostart_btn.isChecked()
+        key = "tooltip_autostart_on" if is_on else "tooltip_autostart_off"
+        self.autostart_btn.setToolTip(self.config.get_message(key))
+
+    def on_autostart_clicked(self):
+        enabled = self.autostart_btn.isChecked()
+        self.config.autostart = enabled
+        try:
+            self.config.save_config()
+        except Exception as e:
+            print(f"Error saving config: {e}")
+            
+        success, err = AutoStartManager.set_autostart(enabled)
+        if success:
+            if enabled:
+                self.log(self.config.get_message("log_autostart_enabled"))
+            else:
+                self.log(self.config.get_message("log_autostart_disabled"))
+        else:
+            self.log(self.config.get_message("log_autostart_failed", error=str(err)))
+        self.update_autostart_tooltips()
+
     def closeEvent(self, event):
         # Stop engine first
         self.engine.stop_all()
@@ -550,5 +606,7 @@ class MainWindow(QMainWindow):
             'height': self.height()
         }
         timers_list = [card.get_values() for card in self.timer_cards]
+        if hasattr(self, 'autostart_btn'):
+            self.config.autostart = self.autostart_btn.isChecked()
         self.config.save_config(window_geo=geo, timers_list=timers_list)
         super().closeEvent(event)
